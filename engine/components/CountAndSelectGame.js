@@ -13,6 +13,7 @@ import {
 import Svg, { Circle, Rect, Path, G, Defs, RadialGradient, Stop, Ellipse } from 'react-native-svg';
 import { triggerConfetti } from '../utils/confetti';
 import { audioMixer } from '../audio';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 
 // Animal characters definition
 const ANIMAL_TYPES = [
@@ -122,6 +123,7 @@ export function CountAndSelectGame({ onBack, onComplete, audio = {} }) {
     const ball = balls[index];
     if (!ball || ball.isPopped) return;
 
+    AndroidHaptics.tap();
     const newCount = poppedCount + 1;
     setPoppedCount(newCount);
 
@@ -191,6 +193,7 @@ export function CountAndSelectGame({ onBack, onComplete, audio = {} }) {
     setSelectedAnswer(choice);
     if (choice === currentRound.ballsCount) {
       // Correct!
+      AndroidHaptics.victoryFanfare();
       setIsAnswerCorrect(true);
       setEarnedStars((s) => s + 1);
       playSoundEffect(audio.countSelectWin || audio.sfxChime);
@@ -210,6 +213,7 @@ export function CountAndSelectGame({ onBack, onComplete, audio = {} }) {
       }, 1600);
     } else {
       // Wrong choice shake
+      AndroidHaptics.warning();
       playSoundEffect(audio.sfxIncorrect);
       Animated.sequence([
         Animated.timing(shakeAnim, { toValue: -15, duration: 60, useNativeDriver: true }),
@@ -454,7 +458,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 12,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 3,
     borderBottomColor: '#E2E8F0',
