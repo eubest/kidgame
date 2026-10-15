@@ -6,12 +6,14 @@ import {
   ScrollView,
   StyleSheet,
   Animated,
+  Platform,
   useWindowDimensions,
   Easing,
 } from 'react-native';
 import Svg, { Circle, Rect, Path, G, Ellipse } from 'react-native-svg';
 import { triggerConfetti } from '../utils/confetti';
 import { audioMixer } from '../audio';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 
 const FRUIT_TYPES = [
   { type: 'apple', emoji: '🍎', color: '#E74C3C', bg: '#FDEDEC' },
@@ -111,6 +113,7 @@ export function FindTheNumberFallGame({ onBack, onComplete, audio = {} }) {
 
     if (item.number === currentLevel.targetNumber) {
       // Correct!
+      AndroidHaptics.tap();
       const newCount = collectedCount + 1;
       setCollectedCount(newCount);
 
@@ -144,6 +147,7 @@ export function FindTheNumberFallGame({ onBack, onComplete, audio = {} }) {
 
       // Check level complete
       if (newCount >= currentLevel.goalCount) {
+        AndroidHaptics.victoryFanfare();
         setEarnedStars((s) => s + 1);
         setTimeout(() => {
           playSoundEffect(audio.findNumberWin || audio.sfxRoyal);
@@ -158,6 +162,7 @@ export function FindTheNumberFallGame({ onBack, onComplete, audio = {} }) {
       }
     } else {
       // Incorrect item: wobble shake and warning voice
+      AndroidHaptics.warning();
       playSoundEffect(audio.findNumberWrong || audio.sfxIncorrect);
       Animated.sequence([
         Animated.timing(item.shakeAnim, { toValue: -14, duration: 60, useNativeDriver: true }),
@@ -359,7 +364,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 12,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 3,
     borderBottomColor: '#FAD7A0',
