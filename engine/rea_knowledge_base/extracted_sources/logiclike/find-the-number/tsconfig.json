@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "moduleResolution": "node",
+    "lib": ["es2017", "dom"],
+    "types": ["node"]
+  },
+  "include": [
+    "**/*.ts",
+    "../webview.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

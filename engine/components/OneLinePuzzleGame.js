@@ -727,3 +727,5 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'web' ? 'Fredoka, sans-serif' : 'System',
   },
 });
+
+export default OneLinePuzzleGame;

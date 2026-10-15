@@ -37,15 +37,16 @@ const LEVELS = [
 // Compute responsive pad coordinates based on container width and height
 const computeLevelLayout = (level, width, height) => {
   const isPort = width < height;
+  const isCompactHeight = height < 500;
   const numPads = level.targetNumbers.length;
   const pads = [];
 
   if (isPort) {
     // Mobile Portrait: winding path ascending from bottom to top
-    const startY = height - 90;
-    const endY = 120;
+    const startY = height - (isCompactHeight ? 75 : 90);
+    const endY = isCompactHeight ? 90 : 120;
     const centerX = width * 0.5;
-    const amplitude = Math.min(width * 0.28, 110);
+    const amplitude = Math.min(width * 0.28, isCompactHeight ? 80 : 110);
 
     level.targetNumbers.forEach((num, i) => {
       const progress = i / Math.max(1, numPads - 1);
@@ -64,14 +65,14 @@ const computeLevelLayout = (level, width, height) => {
     return {
       ...level,
       pads,
-      trophyPosition: { x: Math.round(centerX), y: 65 },
+      trophyPosition: { x: Math.round(centerX), y: isCompactHeight ? 48 : 65 },
     };
   } else {
     // Landscape: winding path left to right
-    const startX = 80;
-    const endX = width - 120;
-    const centerY = height * 0.55;
-    const ampY = Math.min(height * 0.22, 75);
+    const startX = isCompactHeight ? 65 : 80;
+    const endX = width - (isCompactHeight ? 95 : 120);
+    const centerY = isCompactHeight ? height * 0.50 : height * 0.55;
+    const ampY = isCompactHeight ? Math.min(height * 0.16, 45) : Math.min(height * 0.22, 75);
 
     level.targetNumbers.forEach((num, i) => {
       const progress = i / Math.max(1, numPads - 1);
@@ -88,7 +89,7 @@ const computeLevelLayout = (level, width, height) => {
     return {
       ...level,
       pads,
-      trophyPosition: { x: Math.round(width - 60), y: Math.round(centerY) },
+      trophyPosition: { x: Math.round(width - (isCompactHeight ? 50 : 60)), y: Math.round(centerY) },
     };
   }
 };
@@ -767,3 +768,5 @@ const styles = StyleSheet.create({
     fontFamily: Platform.OS === 'web' ? 'Fredoka, sans-serif' : 'System',
   },
 });
+
+export default SteppingStonesPathGame;

@@ -394,3 +394,5 @@ const styles = StyleSheet.create({
     fontSize: 26,
   },
 });
+
+export default LivingMascot;

@@ -661,3 +661,5 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
   },
 });
+
+export default InteractiveStorybookReader;

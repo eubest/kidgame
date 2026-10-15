@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
   Animated,
   useWindowDimensions,
@@ -168,44 +169,53 @@ export function FindTheNumberFallGame({ onBack, onComplete, audio = {} }) {
     }
   };
 
-  const itemWidth = Math.min(Math.floor((width - 50) / (isLandscape ? 5 : 3)), 95);
+  const isCompactHeight = height < 520;
+  const maxItem = isCompactHeight ? Math.min(Math.floor(height * 0.16), 62) : 95;
+  const itemWidth = Math.min(Math.floor((width - 50) / (isLandscape ? 5 : 3)), maxItem);
 
   return (
     <View style={styles.container}>
       {/* 1. TOP BAR */}
-      <View style={styles.header}>
+      <View style={[styles.header, isCompactHeight && { paddingVertical: 6 }]}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={[styles.backButton, isCompactHeight && { paddingVertical: 4, paddingHorizontal: 10 }]}
           onPress={() => {
             playSoundEffect(audio.sfxButton);
             onBack();
           }}
           activeOpacity={0.8}
         >
-          <Text style={styles.backButtonText}>⬅ Înapoi</Text>
+          <Text style={[styles.backButtonText, isCompactHeight && { fontSize: 14 }]}>⬅ Înapoi</Text>
         </TouchableOpacity>
 
         <View style={styles.titleWrap}>
-          <Text style={styles.titleText}>Mâncăciosul de Numere</Text>
-          <Text style={styles.subtitleText}>
+          <Text style={[styles.titleText, isCompactHeight && { fontSize: 17 }]}>Mâncăciosul de Numere</Text>
+          <Text style={[styles.subtitleText, isCompactHeight && { fontSize: 11 }]}>
             Nivelul {levelIdx + 1} din {LEVELS.length}
           </Text>
         </View>
 
-        <View style={styles.starCounter}>
-          <Text style={styles.starCounterText}>⭐ {earnedStars}</Text>
+        <View style={[styles.starCounter, isCompactHeight && { paddingVertical: 4, paddingHorizontal: 8 }]}>
+          <Text style={[styles.starCounterText, isCompactHeight && { fontSize: 13 }]}>⭐ {earnedStars}</Text>
         </View>
       </View>
 
-      {/* 2. PLAY AREA */}
-      <View style={styles.playfield}>
+      {/* 2. PLAY AREA (SCROLLABLE & COMPACT FOR MOBILE) */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.playfield,
+          isCompactHeight && { paddingVertical: 4, paddingHorizontal: 10 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Progress & Target Banner */}
-        <View style={styles.targetBanner}>
-          <Text style={styles.targetBannerLabel}>Caută toate fructele cu numărul:</Text>
-          <View style={styles.targetNumberBadge}>
-            <Text style={styles.targetNumberText}>{currentLevel.targetNumber}</Text>
+        <View style={[styles.targetBanner, isCompactHeight && { paddingVertical: 4, paddingHorizontal: 12 }]}>
+          <Text style={[styles.targetBannerLabel, isCompactHeight && { fontSize: 13 }]}>Caută toate fructele cu numărul:</Text>
+          <View style={[styles.targetNumberBadge, isCompactHeight && { width: 30, height: 30, borderRadius: 15 }]}>
+            <Text style={[styles.targetNumberText, isCompactHeight && { fontSize: 17 }]}>{currentLevel.targetNumber}</Text>
           </View>
-          <Text style={styles.targetProgressText}>
+          <Text style={[styles.targetProgressText, isCompactHeight && { fontSize: 13 }]}>
             Adunate: {collectedCount} / {currentLevel.goalCount}
           </Text>
         </View>
@@ -305,7 +315,7 @@ export function FindTheNumberFallGame({ onBack, onComplete, audio = {} }) {
             />
           </Svg>
         </Animated.View>
-      </View>
+      </ScrollView>
 
       {/* 4. VICTORY MODAL */}
       {showVictoryModal && (

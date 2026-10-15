@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>part1</key>
+	<dict>
+		<key>zIndex</key>
+		<string>2</string>
+		<key>coordinates</key>
+		<string>902, 542, 844, 506, 780, 487, 712, 482, 643, 498, 581, 531, 533, 572, 498, 629, 476, 685, 465, 747, 471, 816, 490, 880, 521, 937, 559, 980, 608, 1015, 669, 1038, 736, 1042, 802, 1032, 863, 1003, 919, 963, 962, 904, 992, 842, 1003, 778, 999, 717, 981, 655, 946, 594</string>
+	</dict>
+	<key>part2</key>
+	<dict>
+		<key>zIndex</key>
+		<string>1</string>
+		<key>coordinates</key>
+		<string>1014, 475, 1014, 1045</string>
+	</dict>
+</dict>
+</plist>

@@ -1,0 +1,32 @@
+{
+  "sequenceImageWidth": 80,
+  "sequenceImageHeight": 80,
+  "trophyWidth": 50,
+  "trophyHeight": 54,
+  "trophyOffset": {
+    "x": 20,
+    "y": 0
+  },
+  "animalWidth": 100,
+  "animalHeight": 88,
+  "animalOffset": {
+    "x": -9,
+    "y": 10
+  },
+  "digitOffset": {
+    "x": 32,
+    "y": 42
+  },
+  "dashLineOffset": {
+    "x": 40,
+    "y": 75
+  },
+  "wrongImageSequenceFrames": 6,
+  "finishImageSequenceFrames": 9,
+  "previewScale": 1.5,
+  "angle": 10,
+  "previewOffset": {
+    "x": 22,
+    "y": 36
+  }
+}

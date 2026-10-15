@@ -3,6 +3,7 @@ import {
   View,
   Text,
   TouchableOpacity,
+  ScrollView,
   StyleSheet,
   Animated,
   useWindowDimensions,
@@ -220,41 +221,50 @@ export function CountAndSelectGame({ onBack, onComplete, audio = {} }) {
     }
   };
 
-  // Ball dimensions based on screen width
-  const ballSize = Math.min(Math.floor((width - 40) / Math.max(currentRound.ballsCount, 3)), 105);
+  // Dynamic responsive sizing for mobile portrait and landscape
+  const isCompactHeight = height < 520;
+  const maxBall = isCompactHeight ? Math.min(Math.floor(height * 0.18), 75) : 105;
+  const ballSize = Math.min(Math.floor((width - 40) / Math.max(currentRound.ballsCount, 3)), maxBall);
 
   return (
     <View style={styles.container}>
       {/* 1. TOP HEADER */}
-      <View style={styles.header}>
+      <View style={[styles.header, isCompactHeight && { paddingVertical: 6 }]}>
         <TouchableOpacity
-          style={styles.backButton}
+          style={[styles.backButton, isCompactHeight && { paddingVertical: 4, paddingHorizontal: 10 }]}
           onPress={() => {
             playSoundEffect(audio.sfxButton);
             onBack();
           }}
           activeOpacity={0.8}
         >
-          <Text style={styles.backButtonText}>⬅ Înapoi</Text>
+          <Text style={[styles.backButtonText, isCompactHeight && { fontSize: 14 }]}>⬅ Înapoi</Text>
         </TouchableOpacity>
 
         <View style={styles.titleWrap}>
-          <Text style={styles.titleText}>Numără și Alege</Text>
-          <Text style={styles.subtitleText}>
+          <Text style={[styles.titleText, isCompactHeight && { fontSize: 17 }]}>Numără și Alege</Text>
+          <Text style={[styles.subtitleText, isCompactHeight && { fontSize: 11 }]}>
             Nivelul {currentRoundIdx + 1} din {ROUNDS_CONFIG.length}
           </Text>
         </View>
 
-        <View style={styles.starCounter}>
-          <Text style={styles.starCounterText}>⭐ {earnedStars}</Text>
+        <View style={[styles.starCounter, isCompactHeight && { paddingVertical: 4, paddingHorizontal: 8 }]}>
+          <Text style={[styles.starCounterText, isCompactHeight && { fontSize: 13 }]}>⭐ {earnedStars}</Text>
         </View>
       </View>
 
-      {/* 2. PLAY AREA */}
-      <View style={styles.playfield}>
+      {/* 2. PLAY AREA (SCROLLABLE & COMPACT FOR MOBILE) */}
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={[
+          styles.playfield,
+          isCompactHeight && { paddingVertical: 6, paddingHorizontal: 12 },
+        ]}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Instruction Banner */}
-        <View style={styles.banner}>
-          <Text style={styles.bannerText}>
+        <View style={[styles.banner, isCompactHeight && { paddingVertical: 4, paddingHorizontal: 14, marginBottom: 4 }]}>
+          <Text style={[styles.bannerText, isCompactHeight && { fontSize: 14 }]}>
             {!isAllPopped
               ? `Atinge fiecare minge magică! (${poppedCount} / ${currentRound.ballsCount})`
               : `Câte animăluțe sunt în total?`}
@@ -262,7 +272,7 @@ export function CountAndSelectGame({ onBack, onComplete, audio = {} }) {
         </View>
 
         {/* Balls / Animals row */}
-        <View style={[styles.ballsRow, { flexWrap: isLandscape ? 'nowrap' : 'wrap' }]}>
+        <View style={[styles.ballsRow, isCompactHeight && { marginVertical: 6 }, { flexWrap: isLandscape ? 'nowrap' : 'wrap' }]}>
           {balls.map((ball, idx) => {
             return (
               <Animated.View
@@ -400,7 +410,7 @@ export function CountAndSelectGame({ onBack, onComplete, audio = {} }) {
             </View>
           </Animated.View>
         )}
-      </View>
+      </ScrollView>
 
       {/* 4. CELEBRATION / VICTORY MODAL */}
       {showVictoryModal && (
@@ -487,22 +497,23 @@ const styles = StyleSheet.create({
     color: '#B7791F',
   },
   playfield: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
-    justifyContent: 'space-around',
-    padding: 16,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   banner: {
     backgroundColor: '#EBF8FF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 24,
+    paddingVertical: 6,
+    paddingHorizontal: 16,
+    borderRadius: 20,
     borderWidth: 2,
     borderColor: '#90CDF4',
-    marginBottom: 8,
+    marginBottom: 6,
   },
   bannerText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
     color: '#2B6CB0',
     textAlign: 'center',
@@ -511,13 +522,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 12,
+    marginVertical: 6,
   },
   ballItemContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 6,
-    marginVertical: 6,
+    marginHorizontal: 4,
+    marginVertical: 4,
   },
   ballTouchable: {
     alignItems: 'center',
@@ -571,34 +582,34 @@ const styles = StyleSheet.create({
   },
   choiceContainer: {
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: 6,
     width: '100%',
   },
   choicePrompt: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
     color: '#2D3748',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   choiceRow: {
     flexDirection: 'row',
     justifyContent: 'center',
   },
   choiceCard: {
-    width: 76,
-    height: 80,
+    width: 68,
+    height: 68,
     backgroundColor: '#FFFFFF',
-    borderRadius: 18,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center',
-    marginHorizontal: 10,
+    marginHorizontal: 8,
     borderWidth: 3,
     borderColor: '#CBD5E0',
     elevation: 4,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
-    shadowRadius: 5,
+    shadowRadius: 4,
   },
   choiceCardCorrect: {
     backgroundColor: '#C6F6D5',

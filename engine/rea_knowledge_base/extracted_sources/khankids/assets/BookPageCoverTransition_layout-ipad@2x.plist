@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>frameCount</key>
+	<string>1</string>
+	<key>container</key>
+	<dict>
+		<key>size</key>
+		<string>2048,1536</string>
+		<key>pos</key>
+		<array>
+			<string>0,0</string>
+		</array>
+		<key>children</key>
+		<array>
+			<dict>
+				<key>name</key>
+				<string>back</string>
+				<key>size</key>
+				<string>912,1264</string>
+				<key>pos</key>
+				<array>
+					<string>1024,768</string>
+				</array>
+			</dict>
+			<dict>
+				<key>image</key>
+				<string>readbymyself_btn</string>
+				<key>imageCount</key>
+				<string>1</string>
+				<key>size</key>
+				<string>320,104</string>
+				<key>pos</key>
+				<array>
+					<string>1024,1212</string>
+				</array>
+			</dict>
+			<dict>
+				<key>image</key>
+				<string>readtome_btn</string>
+				<key>imageCount</key>
+				<string>1</string>
+				<key>size</key>
+				<string>552,176</string>
+				<key>pos</key>
+				<array>
+					<string>1024,1052</string>
+				</array>
+			</dict>
+		</array>
+	</dict>
+</dict>
+</plist>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>part1</key>
+	<dict>
+		<key>coordinates</key>
+		<string>435, 149 ,411, 141 ,385, 134 ,360, 130 ,335, 130 ,312, 134 ,286, 141 ,260, 153 ,237, 172 ,217, 194 ,200, 219 ,189, 248 ,181, 274 ,177, 299 ,177, 324 ,179, 350 ,186, 375 ,195, 400 ,210, 425 ,225, 444 ,241, 460 ,262, 476 ,286, 487 ,312, 494 ,337, 497 ,364, 496 ,391, 489 ,414, 479 ,438, 466</string>
+	</dict>
+</dict>
+</plist>

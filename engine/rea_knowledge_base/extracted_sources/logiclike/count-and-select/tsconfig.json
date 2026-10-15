@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "target": "es5",
+    // Array.prototype.includes появился в es2016 — иначе он не виден при target es5.
+    "lib": ["es2017", "dom"],
+    "strict": false,
+    // Только node (бандлы используют require): без этого подхватывался весь
+    // корневой @types и подменял lib-декларации.
+    "types": ["node"]
+  },
+  "include": [
+    "**/*.ts",
+    "../webview.d.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
+}

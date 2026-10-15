@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+<key>booktitletxt</key>
+<dict>
+<key>type</key>
+<string>Label</string>
+<key>fontName</key>
+<string>FredokaOneModified-Regular</string>
+<key>fontSize</key>
+<string>30</string>
+<key>textColor</key>
+<string>10101</string>
+<key>alignment</key>
+<string>Center</string>
+<key>boldFontName</key>
+<string>FredokaOneModified-Regular</string>
+<key>boldFontSize</key>
+<string>30</string>
+</dict>
+<key>bookauthortxt</key>
+<dict>
+<key>type</key>
+<string>Label</string>
+<key>fontName</key>
+<string>FredokaOneModified-Regular</string>
+<key>fontSize</key>
+<string>12</string>
+<key>textColor</key>
+<string>10101</string>
+<key>alignment</key>
+<string>Center</string>
+<key>boldFontName</key>
+<string>FredokaOneModified-Regular</string>
+<key>boldFontSize</key>
+<string>12</string>
+</dict>
+</dict>
+</plist>
