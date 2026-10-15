@@ -9,6 +9,7 @@ import {
   Platform,
   Easing,
   PanResponder,
+  ScrollView,
 } from 'react-native';
 import confetti from '../utils/confetti';
 import { AndroidHaptics } from '../native/AndroidHaptics';
@@ -267,6 +268,14 @@ export function PatternRailwayGame({ onBack, onComplete }) {
     }
   };
 
+  const seqLen = currentLevel.sequence.length;
+  // Responsive sizing for Android mobile screens
+  const wagonW = Math.max(38, Math.min(58, Math.floor((SCREEN_WIDTH - 76) / (seqLen + 0.3))));
+  const wagonH = Math.round(wagonW * 0.9);
+  const emojiSize = Math.round(wagonW * 0.48);
+  const qMarkSize = Math.round(wagonW * 0.42);
+  const locoW = Math.max(54, Math.min(74, Math.round(wagonW * 1.25)));
+
   return (
     <View style={styles.container}>
       {/* 1. HEADER (Android status bar safe) */}
@@ -308,104 +317,111 @@ export function PatternRailwayGame({ onBack, onComplete }) {
         <View style={styles.cloud2} />
 
         {/* Train on Tracks */}
-        <Animated.View
-          style={[
-            styles.trainTrackRow,
-            {
-              transform: [{ translateX: trainTranslateX }],
-            },
-          ]}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.scrollTrainContent}
         >
-          {/* Steam Locomotive */}
-          <View style={styles.locomotive}>
-            {/* Steam Puff Animation */}
-            <Animated.View
-              style={[
-                styles.steamPuff,
-                {
-                  transform: [{ scale: steamScale }],
-                  opacity: steamOpacity,
-                },
-              ]}
-            >
-              <Text style={styles.steamEmoji}>💨</Text>
-            </Animated.View>
+          <Animated.View
+            style={[
+              styles.trainTrackRow,
+              {
+                transform: [{ translateX: trainTranslateX }],
+              },
+            ]}
+          >
+            {/* Steam Locomotive */}
+            <View style={[styles.locomotive, { width: locoW, height: Math.round(locoW * 0.9) }]}>
+              {/* Steam Puff Animation */}
+              <Animated.View
+                style={[
+                  styles.steamPuff,
+                  {
+                    transform: [{ scale: steamScale }],
+                    opacity: steamOpacity,
+                  },
+                ]}
+              >
+                <Text style={styles.steamEmoji}>💨</Text>
+              </Animated.View>
 
-            {/* Smokestack */}
-            <View style={styles.smokestack} />
+              {/* Smokestack */}
+              <View style={[styles.smokestack, { left: Math.round(locoW * 0.2) }]} />
 
-            {/* Locomotive Cab */}
-            <View style={styles.locoCab}>
-              <Text style={styles.locoFace}>😊</Text>
-            </View>
-
-            {/* Locomotive Boiler & Light */}
-            <View style={styles.locoBoiler}>
-              <View style={styles.headlight} />
-            </View>
-
-            {/* Wheels */}
-            <View style={styles.locoWheelsRow}>
-              <View style={[styles.wheel, styles.bigWheel]} />
-              <View style={[styles.wheel, styles.bigWheel]} />
-            </View>
-          </View>
-
-          {/* Wagons Row */}
-          {currentLevel.sequence.map((wagon, idx) => {
-            const isTarget = wagon.missing;
-            return (
-              <View key={wagon.id || `w_${idx}`} style={styles.wagonContainer}>
-                {/* Coupler link */}
-                <View style={styles.coupler} />
-
-                {/* Wagon Body */}
-                <View
-                  style={[
-                    styles.wagonBody,
-                    isTarget && styles.targetWagonBody,
-                    isTarget && isSuccess && styles.targetWagonSuccess,
-                  ]}
-                >
-                  {isTarget ? (
-                    // Target Slot
-                    placedItem ? (
-                      <Animated.View
-                        style={[
-                          styles.placedItemWrap,
-                          { transform: [{ scale: placedScale }] },
-                        ]}
-                      >
-                        <Text style={styles.freightEmoji}>{placedItem}</Text>
-                        <Text style={styles.freightCheck}>✓</Text>
-                      </Animated.View>
-                    ) : (
-                      <Animated.View
-                        style={[
-                          styles.emptySlot,
-                          { transform: [{ scale: targetSlotPulse }] },
-                        ]}
-                      >
-                        <Text style={styles.questionMark}>?</Text>
-                      </Animated.View>
-                    )
-                  ) : (
-                    // Normal Freight Wagon
-                    <View style={styles.freightWrap}>
-                      <Text style={styles.freightEmoji}>{wagon.item}</Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Wagon Wheels */}
-                <View style={styles.wagonWheelsRow}>
-                  <View style={styles.wheel} />
-                  <View style={styles.wheel} />
-                </View>
+              {/* Locomotive Cab */}
+              <View style={[styles.locoCab, { width: Math.round(locoW * 0.46), height: Math.round(locoW * 0.58) }]}>
+                <Text style={[styles.locoFace, { fontSize: Math.round(locoW * 0.26) }]}>😊</Text>
               </View>
-            );
-          })}
-        </Animated.View>
+
+              {/* Locomotive Boiler & Light */}
+              <View style={[styles.locoBoiler, { width: Math.round(locoW * 0.52), height: Math.round(locoW * 0.42) }]}>
+                <View style={styles.headlight} />
+              </View>
+
+              {/* Wheels */}
+              <View style={[styles.locoWheelsRow, { width: locoW - 10 }]}>
+                <View style={[styles.wheel, styles.bigWheel]} />
+                <View style={[styles.wheel, styles.bigWheel]} />
+              </View>
+            </View>
+
+            {/* Wagons Row */}
+            {currentLevel.sequence.map((wagon, idx) => {
+              const isTarget = wagon.missing;
+              return (
+                <View key={wagon.id || `w_${idx}`} style={styles.wagonContainer}>
+                  {/* Coupler link */}
+                  <View style={[styles.coupler, { width: 5 }]} />
+
+                  {/* Wagon Body */}
+                  <View
+                    style={[
+                      styles.wagonBody,
+                      { width: wagonW, height: wagonH },
+                      isTarget && styles.targetWagonBody,
+                      isTarget && isSuccess && styles.targetWagonSuccess,
+                    ]}
+                  >
+                    {isTarget ? (
+                      // Target Slot
+                      placedItem ? (
+                        <Animated.View
+                          style={[
+                            styles.placedItemWrap,
+                            { transform: [{ scale: placedScale }] },
+                          ]}
+                        >
+                          <Text style={[styles.freightEmoji, { fontSize: emojiSize }]}>{placedItem}</Text>
+                          <Text style={styles.freightCheck}>✓</Text>
+                        </Animated.View>
+                      ) : (
+                        <Animated.View
+                          style={[
+                            styles.emptySlot,
+                            { width: wagonW - 10, height: wagonH - 12, transform: [{ scale: targetSlotPulse }] },
+                          ]}
+                        >
+                          <Text style={[styles.questionMark, { fontSize: qMarkSize }]}>?</Text>
+                        </Animated.View>
+                      )
+                    ) : (
+                      // Normal Freight Wagon
+                      <View style={styles.freightWrap}>
+                        <Text style={[styles.freightEmoji, { fontSize: emojiSize }]}>{wagon.item}</Text>
+                      </View>
+                    )}
+                  </View>
+
+                  {/* Wagon Wheels */}
+                  <View style={[styles.wagonWheelsRow, { width: wagonW }]}>
+                    <View style={[styles.wheel, { width: Math.min(16, Math.round(wagonW * 0.3)), height: Math.min(16, Math.round(wagonW * 0.3)), borderRadius: Math.min(8, Math.round(wagonW * 0.15)) }]} />
+                    <View style={[styles.wheel, { width: Math.min(16, Math.round(wagonW * 0.3)), height: Math.min(16, Math.round(wagonW * 0.3)), borderRadius: Math.min(8, Math.round(wagonW * 0.15)) }]} />
+                  </View>
+                </View>
+              );
+            })}
+          </Animated.View>
+        </ScrollView>
 
         {/* Rails & Sleepers */}
         <View style={styles.tracksContainer}>
@@ -574,10 +590,15 @@ const styles = StyleSheet.create({
   },
 
   // TRAIN
+  scrollTrainContent: {
+    alignItems: 'flex-end',
+    paddingHorizontal: 12,
+    minWidth: SCREEN_WIDTH,
+  },
   trainTrackRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 20,
+    paddingHorizontal: 4,
     marginBottom: 4,
     zIndex: 5,
   },

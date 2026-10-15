@@ -9,8 +9,8 @@ import {
   Vibration,
   Platform,
   ScrollView,
-} from 'react-native';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 import { audioMixer } from '../audio/index.js';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -163,15 +163,15 @@ export const LogicMatrixGame = ({ audio, onBack, onComplete }) => {
   const handleSelectChoice = (choice) => {
     if (isSolved) return;
 
-    if (Platform.OS === 'android') {
-      Vibration.vibrate(30);
-    }
+    AndroidHaptics.tap();
 
     if (choice.isCorrect) {
       // CORRECT
       setIsSolved(true);
       setSelectedChoiceId(choice.id);
       setScoreStars((s) => s + 1);
+
+      AndroidHaptics.notificationSuccess();
 
       try {
         if (audio?.sfxChime) audioMixer.playSFX(audio.sfxChime);
@@ -190,9 +190,7 @@ export const LogicMatrixGame = ({ audio, onBack, onComplete }) => {
       confetti({ particleCount: 90, spread: 80, origin: { y: 0.6 } });
     } else {
       // INCORRECT
-      if (Platform.OS === 'android') {
-        Vibration.vibrate([0, 40, 30, 40]);
-      }
+      AndroidHaptics.warning();
 
       try {
         if (audio?.sfxIncorrect) audioMixer.playSFX(audio.sfxIncorrect);
@@ -211,6 +209,7 @@ export const LogicMatrixGame = ({ audio, onBack, onComplete }) => {
   };
 
   const handleNextLevel = () => {
+    AndroidHaptics.tap();
     try {
       if (audio?.sfxButton) audioMixer.playSFX(audio.sfxButton);
     } catch (e) {}
@@ -218,6 +217,7 @@ export const LogicMatrixGame = ({ audio, onBack, onComplete }) => {
     if (levelIndex < MATRIX_LEVELS.length - 1) {
       setLevelIndex(levelIndex + 1);
     } else {
+      AndroidHaptics.victoryFanfare();
       confetti({ particleCount: 150, spread: 90 });
       try {
         if (audio?.sfxRoyal) audioMixer.playSFX(audio.sfxRoyal);
@@ -373,7 +373,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 12,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
