@@ -13,6 +13,8 @@ import {
 import Svg, { Path, Circle, Rect, G } from 'react-native-svg';
 import { audioMixer } from '../audio/index.js';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics.js';
+import { LagoonDepthGradient } from './GameGradients.js';
 
 const { width } = Dimensions.get('window');
 
@@ -151,6 +153,7 @@ export const PhonicsFishingGame = ({ audio, images, onComplete, onBack }) => {
 
     if (fish.char === currentRound.target) {
       // Correct target fish!
+      AndroidHaptics.waterSplash();
       setHookTarget(fish);
 
       try {
@@ -175,6 +178,7 @@ export const PhonicsFishingGame = ({ audio, images, onComplete, onBack }) => {
         }),
       ]).start(() => {
         // Landed in bucket
+        AndroidHaptics.medium();
         try {
           audioMixer.playSFX(require('../../assets/audio/splash_out.mp3'), 0.85);
           audioMixer.playSFX(require('../../assets/audio/correct_chime.mp3'), 0.7);
@@ -189,6 +193,7 @@ export const PhonicsFishingGame = ({ audio, images, onComplete, onBack }) => {
         const totalTargets = currentRound.fishList.filter((f) => f.char === currentRound.target).length;
         if (newCaught.length >= totalTargets) {
           setIsRoundWon(true);
+          AndroidHaptics.celebration();
           try {
             audioMixer.playVoice(require('../../assets/audio/fishing_win.mp3'));
             audioMixer.playSFX(require('../../assets/audio/BingoSuccessfulLineFIll.mp3'), 0.9);
@@ -198,6 +203,7 @@ export const PhonicsFishingGame = ({ audio, images, onComplete, onBack }) => {
       });
     } else {
       // Non-target fish: gentle fail-soft escape
+      AndroidHaptics.warning();
       try {
         audioMixer.playSFX(require('../../assets/audio/SFX_squish.mp3'), 0.7);
         audioMixer.playSFX(require('../../assets/audio/SFX_whoosh.mp3'), 0.6);
@@ -229,7 +235,7 @@ export const PhonicsFishingGame = ({ audio, images, onComplete, onBack }) => {
   const targetCount = currentRound.fishList.filter((f) => f.char === currentRound.target).length;
 
   return (
-    <View style={styles.container}>
+    <LagoonDepthGradient style={styles.container}>
       {/* 1. TOP HEADER & NAVIGATION */}
       <View style={styles.headerBar}>
         <TouchableOpacity style={styles.backBtn} onPress={onBack} activeOpacity={0.8}>
@@ -439,7 +445,7 @@ export const PhonicsFishingGame = ({ audio, images, onComplete, onBack }) => {
           </View>
         </View>
       )}
-    </View>
+    </LagoonDepthGradient>
   );
 };
 

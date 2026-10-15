@@ -1,12 +1,14 @@
 import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { Platform } from 'react-native';
+import { NativeAudioBridge } from '../native/NativeAudioBridge';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 
 /**
  * MultiChannelAudioMixer
  * Channels:
  *  - MUSIC: Continuous looping background piano music with smooth ducking
  *  - VOICE: Romanian neural teacher prompts & feedback
- *  - SFX: Concurrent low-latency polyphonic sound effects
+ *  - SFX: Concurrent low-latency polyphonic sound effects with Android native haptic pairing
  */
 class AudioMixerCore {
   constructor() {
@@ -47,7 +49,7 @@ class AudioMixerCore {
 
   resolveSource(src) {
     if (!src) return null;
-    if (typeof src === 'string') return src;
+    if (typeof src === 'string' || typeof src === 'number') return src;
     if (src.default) return src.default;
     if (src.uri) return src.uri;
     return src;
@@ -63,20 +65,32 @@ class AudioMixerCore {
         if (this.musicAudio.src === resolvedSrc && !this.musicAudio.paused) {
           return; // Already playing this track
         }
-        this.musicAudio.pause();
+        if (this.musicAudio.pause) this.musicAudio.pause();
+        if (this.musicAudio.unload) this.musicAudio.unload();
         this.musicAudio = null;
       }
 
-      const audio = new Audio(resolvedSrc);
-      audio.loop = loop;
-      audio.volume = this.isMuted ? 0 : this.isVoicePlaying ? this.duckedMusicVolume : this.musicVolume;
-      this.musicAudio = audio;
+      const initialVolume = this.isMuted ? 0 : this.isVoicePlaying ? this.duckedMusicVolume : this.musicVolume;
 
-      const promise = audio.play();
-      if (promise !== undefined) {
-        promise.catch((err) => {
-          // Handled gracefully if browser blocked initial autoplay
-        });
+      if (typeof Audio !== 'undefined' && Platform.OS === 'web') {
+        const audio = new Audio(resolvedSrc);
+        audio.loop = loop;
+        audio.volume = initialVolume;
+        this.musicAudio = audio;
+
+        const promise = audio.play();
+        if (promise !== undefined) {
+          promise.catch(() => {});
+        }
+      } else {
+        // Native Android / iOS via NativeAudioBridge
+        NativeAudioBridge.createAudioInstance(resolvedSrc, {
+          loop,
+          volume: initialVolume,
+          shouldPlay: true,
+        }).then((instance) => {
+          this.musicAudio = instance;
+        }).catch(() => {});
       }
     } catch (e) {
       // Audio fallback
@@ -86,8 +100,9 @@ class AudioMixerCore {
   stopMusic() {
     if (this.musicAudio) {
       try {
-        this.musicAudio.pause();
-        this.musicAudio.currentTime = 0;
+        if (this.musicAudio.pause) this.musicAudio.pause();
+        if (this.musicAudio.stop) this.musicAudio.stop();
+        if (typeof this.musicAudio.currentTime !== 'undefined') this.musicAudio.currentTime = 0;
       } catch (e) {}
     }
   }
@@ -102,7 +117,7 @@ class AudioMixerCore {
 
     const steps = 15;
     const stepTime = durationMs / steps;
-    const startVol = this.musicAudio.volume;
+    const startVol = typeof this.musicAudio.volume === 'number' ? this.musicAudio.volume : this.musicVolume;
     const diff = targetVolume - startVol;
     let step = 0;
 
@@ -110,7 +125,11 @@ class AudioMixerCore {
       step++;
       const nextVol = Math.max(0, Math.min(1, startVol + (diff * (step / steps))));
       if (this.musicAudio) {
-        this.musicAudio.volume = nextVol;
+        if (this.musicAudio.setVolume) {
+          this.musicAudio.setVolume(nextVol);
+        } else {
+          this.musicAudio.volume = nextVol;
+        }
       }
       if (step >= steps) {
         clearInterval(this.duckingInterval);
@@ -133,45 +152,69 @@ class AudioMixerCore {
     // Stop current voice if playing and not queuing
     if (this.currentVoiceAudio) {
       try {
-        this.currentVoiceAudio.pause();
-        this.currentVoiceAudio.currentTime = 0;
+        if (this.currentVoiceAudio.pause) this.currentVoiceAudio.pause();
+        if (this.currentVoiceAudio.unload) this.currentVoiceAudio.unload();
       } catch (e) {}
       this.currentVoiceAudio = null;
     }
 
-    try {
-      const audio = new Audio(resolvedSrc);
-      audio.volume = this.isMuted ? 0 : this.voiceVolume;
-      this.currentVoiceAudio = audio;
-      this.isVoicePlaying = true;
+    const voiceVol = this.isMuted ? 0 : this.voiceVolume;
 
-      // Duck background music smoothly so teacher voice stands out crisply
+    const handleVoiceEnd = () => {
+      this.isVoicePlaying = false;
+      this.currentVoiceAudio = null;
+
+      if (onEnd) onEnd();
+
+      // Check if there are queued voice prompts
+      if (this.voiceQueue.length > 0) {
+        const next = this.voiceQueue.shift();
+        this.playVoice(next.src, next.options);
+      } else {
+        // Restore background music smoothly
+        if (duck) {
+          this.duckMusic(this.musicVolume, 400);
+        }
+      }
+    };
+
+    try {
       if (duck) {
         this.duckMusic(this.duckedMusicVolume, 200);
       }
 
-      audio.onended = () => {
-        this.isVoicePlaying = false;
-        this.currentVoiceAudio = null;
+      if (typeof Audio !== 'undefined' && Platform.OS === 'web') {
+        const audio = new Audio(resolvedSrc);
+        audio.volume = voiceVol;
+        this.currentVoiceAudio = audio;
+        this.isVoicePlaying = true;
 
-        if (onEnd) onEnd();
-
-        // Check if there are queued voice prompts
-        if (this.voiceQueue.length > 0) {
-          const next = this.voiceQueue.shift();
-          this.playVoice(next.src, next.options);
-        } else {
-          // Restore background music smoothly
-          if (duck) {
-            this.duckMusic(this.musicVolume, 400);
+        audio.onended = handleVoiceEnd;
+        audio.play().catch(() => {
+          this.isVoicePlaying = false;
+          if (duck) this.duckMusic(this.musicVolume, 200);
+        });
+      } else {
+        // Native Android / iOS via NativeAudioBridge
+        this.isVoicePlaying = true;
+        NativeAudioBridge.createAudioInstance(resolvedSrc, {
+          loop: false,
+          volume: voiceVol,
+          shouldPlay: true,
+        }).then((instance) => {
+          this.currentVoiceAudio = instance;
+          if (instance) {
+            instance.setOnPlaybackStatusUpdate((status) => {
+              if (status.didJustFinish) {
+                handleVoiceEnd();
+              }
+            });
           }
-        }
-      };
-
-      audio.play().catch(() => {
-        this.isVoicePlaying = false;
-        if (duck) this.duckMusic(this.musicVolume, 200);
-      });
+        }).catch(() => {
+          this.isVoicePlaying = false;
+          if (duck) this.duckMusic(this.musicVolume, 200);
+        });
+      }
     } catch (e) {
       this.isVoicePlaying = false;
     }
@@ -180,8 +223,8 @@ class AudioMixerCore {
   stopVoice() {
     if (this.currentVoiceAudio) {
       try {
-        this.currentVoiceAudio.pause();
-        this.currentVoiceAudio.currentTime = 0;
+        if (this.currentVoiceAudio.pause) this.currentVoiceAudio.pause();
+        if (this.currentVoiceAudio.unload) this.currentVoiceAudio.unload();
       } catch (e) {}
       this.currentVoiceAudio = null;
       this.isVoicePlaying = false;
@@ -190,30 +233,33 @@ class AudioMixerCore {
   }
 
   // ==================== CONCURRENT SFX CHANNEL ====================
-  playSFX(src, volumeScale = 1.0) {
+  playSFX(src, volumeScale = 1.0, hapticFeedback = null) {
     const resolvedSrc = this.resolveSource(src);
     if (!resolvedSrc || this.isMuted) return;
 
-    try {
-      // Polyphonic instance for zero latency and non-interrupted sound
-      const sfx = new Audio(resolvedSrc);
-      sfx.volume = Math.max(0, Math.min(1, this.sfxVolume * volumeScale));
-      sfx.play().catch(() => {});
-    } catch (e) {}
+    NativeAudioBridge.playSFX(resolvedSrc, volumeScale * this.sfxVolume, hapticFeedback);
   }
 
   // ==================== GLOBAL CONTROLS ====================
   setMusicVolume(vol) {
     this.musicVolume = Math.max(0, Math.min(1, vol));
     if (this.musicAudio && !this.isVoicePlaying && !this.isMuted) {
-      this.musicAudio.volume = this.musicVolume;
+      if (this.musicAudio.setVolume) {
+        this.musicAudio.setVolume(this.musicVolume);
+      } else {
+        this.musicAudio.volume = this.musicVolume;
+      }
     }
   }
 
   setVoiceVolume(vol) {
     this.voiceVolume = Math.max(0, Math.min(1, vol));
     if (this.currentVoiceAudio && !this.isMuted) {
-      this.currentVoiceAudio.volume = this.voiceVolume;
+      if (this.currentVoiceAudio.setVolume) {
+        this.currentVoiceAudio.setVolume(this.voiceVolume);
+      } else {
+        this.currentVoiceAudio.volume = this.voiceVolume;
+      }
     }
   }
 
@@ -223,11 +269,22 @@ class AudioMixerCore {
 
   toggleMute() {
     this.isMuted = !this.isMuted;
+    NativeAudioBridge.setMuted(this.isMuted);
     if (this.musicAudio) {
-      this.musicAudio.volume = this.isMuted ? 0 : this.musicVolume;
+      const vol = this.isMuted ? 0 : this.musicVolume;
+      if (this.musicAudio.setVolume) {
+        this.musicAudio.setVolume(vol);
+      } else {
+        this.musicAudio.volume = vol;
+      }
     }
     if (this.currentVoiceAudio) {
-      this.currentVoiceAudio.volume = this.isMuted ? 0 : this.voiceVolume;
+      const vol = this.isMuted ? 0 : this.voiceVolume;
+      if (this.currentVoiceAudio.setVolume) {
+        this.currentVoiceAudio.setVolume(vol);
+      } else {
+        this.currentVoiceAudio.volume = vol;
+      }
     }
     return this.isMuted;
   }
@@ -267,8 +324,8 @@ export const AudioMixerProvider = ({ children, initialBgMusic }) => {
     audioMixer.playVoice(src, options);
   }, []);
 
-  const playSFX = useCallback((src, vol) => {
-    audioMixer.playSFX(src, vol);
+  const playSFX = useCallback((src, vol, haptic) => {
+    audioMixer.playSFX(src, vol, haptic);
   }, []);
 
   return (
@@ -299,7 +356,7 @@ export const useAudioMixer = () => {
       playMusic: (src, loop) => audioMixer.playMusic(src, loop),
       stopMusic: () => audioMixer.stopMusic(),
       playVoice: (src, opts) => audioMixer.playVoice(src, opts),
-      playSFX: (src, vol) => audioMixer.playSFX(src, vol),
+      playSFX: (src, vol, haptic) => audioMixer.playSFX(src, vol, haptic),
       toggleMute: () => audioMixer.toggleMute(),
       isMuted: audioMixer.isMuted,
       setMusicVolume: (v) => audioMixer.setMusicVolume(v),

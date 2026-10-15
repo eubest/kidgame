@@ -12,6 +12,8 @@ import {
 } from 'react-native';
 import confetti from '../utils/confetti';
 import { audioMixer } from '../audio/index.js';
+import { AndroidHaptics } from '../native/AndroidHaptics.js';
+import { RainbowPianoGradient } from './GameGradients.js';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -53,10 +55,9 @@ export const MusicalSoundboxStudio = ({ audio, onBack, onComplete }) => {
   ).current;
 
   const handleKeyPress = (note) => {
-    // Native haptic feedback on touch
-    if (Platform.OS === 'android') {
-      Vibration.vibrate(20);
-    }
+    // Native Android haptic feedback tuned to pitch
+    const noteIndex = NOTES.findIndex((n) => n.id === note.id);
+    AndroidHaptics.pianoKey(noteIndex >= 0 ? noteIndex : 0);
 
     setActiveKeyId(note.id);
 
@@ -80,6 +81,7 @@ export const MusicalSoundboxStudio = ({ audio, onBack, onComplete }) => {
 
         if (nextStep === TARGET_SONG.length) {
           // Song completed!
+          AndroidHaptics.celebration();
           setScoreStars((s) => s + 2);
           confetti({ particleCount: 100, spread: 85, origin: { y: 0.6 } });
           try {
@@ -90,9 +92,12 @@ export const MusicalSoundboxStudio = ({ audio, onBack, onComplete }) => {
             setSongMode(false);
             setSongStep(0);
           }, 1800);
+        } else {
+          AndroidHaptics.success();
         }
       } else {
         // Wrong note in song mode: restart melody
+        AndroidHaptics.warning();
         setSongStep(0);
         try {
           if (audio?.sfxIncorrect) audioMixer.playSFX(audio.sfxIncorrect);
@@ -102,6 +107,7 @@ export const MusicalSoundboxStudio = ({ audio, onBack, onComplete }) => {
   };
 
   const startSongChallenge = () => {
+    AndroidHaptics.tap();
     setSongMode(true);
     setSongStep(0);
     try {
@@ -212,18 +218,22 @@ export const MusicalSoundboxStudio = ({ audio, onBack, onComplete }) => {
                 ]}
               >
                 <TouchableOpacity
-                  style={[
-                    styles.keyBar,
-                    { backgroundColor: note.color, height: keyHeight },
-                    isHighlighted && styles.keyBarHighlighted,
-                  ]}
                   onPress={() => handleKeyPress(note)}
                   activeOpacity={0.85}
                 >
-                  <View style={styles.keyPeg} />
-                  <Text style={styles.keyNoteName}>{note.name}</Text>
-                  <Text style={styles.keyPitch}>{note.pitch}</Text>
-                  <View style={styles.keyPeg} />
+                  <RainbowPianoGradient
+                    noteIndex={index}
+                    style={[
+                      styles.keyBar,
+                      { height: keyHeight },
+                      isHighlighted && styles.keyBarHighlighted,
+                    ]}
+                  >
+                    <View style={styles.keyPeg} />
+                    <Text style={styles.keyNoteName}>{note.name}</Text>
+                    <Text style={styles.keyPitch}>{note.pitch}</Text>
+                    <View style={styles.keyPeg} />
+                  </RainbowPianoGradient>
                 </TouchableOpacity>
               </Animated.View>
             );

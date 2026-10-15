@@ -40,3 +40,6 @@ yarn-error.*
 /ios
 /android
 test_device.png
+test_*.png
+screen_*.png
+current_screen.png

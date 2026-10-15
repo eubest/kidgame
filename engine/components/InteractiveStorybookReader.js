@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { audioMixer } from '../audio';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics.js';
+import { SunsetSkyGradient } from './GameGradients.js';
 
 const { width } = Dimensions.get('window');
 
@@ -244,6 +246,7 @@ export const InteractiveStorybookReader = ({ audio, onBack, onComplete }) => {
 
   const handlePrevPage = () => {
     if (currentPageIndex > 0) {
+      AndroidHaptics.light();
       audioMixer.playSFX(audio?.sfxWhoosh || null);
       setCurrentPageIndex((prev) => prev - 1);
     }
@@ -251,9 +254,11 @@ export const InteractiveStorybookReader = ({ audio, onBack, onComplete }) => {
 
   const handleNextPage = () => {
     if (currentPageIndex < STORY_PAGES.length - 1) {
+      AndroidHaptics.light();
       audioMixer.playSFX(audio?.sfxWhoosh || null);
       setCurrentPageIndex((prev) => prev + 1);
     } else {
+      AndroidHaptics.celebration();
       audioMixer.playSFX(audio?.sfxBingo || null);
       confetti({ particleCount: 120, spread: 80 });
       if (onComplete) onComplete();
@@ -262,6 +267,7 @@ export const InteractiveStorybookReader = ({ audio, onBack, onComplete }) => {
 
   const handleWordTap = (word, index) => {
     setTappedWord(index);
+    AndroidHaptics.pop();
     audioMixer.playSFX(audio?.sfxPop || null, 0.7);
 
     // Spring animation for child interaction
@@ -282,6 +288,7 @@ export const InteractiveStorybookReader = ({ audio, onBack, onComplete }) => {
   // Handle tapping an interactive hotspot on the page illustration
   const handleHotspotTap = (hs) => {
     setActiveHotspot(hs.id);
+    AndroidHaptics.medium();
     audioMixer.playSFX(require('../../assets/audio/SFX_squish.mp3'), 0.85);
     if (hs.voice) {
       setTimeout(() => {

@@ -25,3 +25,7 @@ export { SizeComparisonGame } from './SizeComparisonGame.js';
 export { LogicMatrixGame } from './LogicMatrixGame.js';
 export { MusicalSoundboxStudio } from './MusicalSoundboxStudio.js';
 export { MemoryPairsGame } from './MemoryPairsGame.js';
+export { PatternRailwayGame } from './PatternRailwayGame.js';
+export { DoubleTenFrameGame } from './DoubleTenFrameGame.js';
+export { WordFactorySyllablesGame } from './WordFactorySyllablesGame.js';
+export * from './GameGradients.js';

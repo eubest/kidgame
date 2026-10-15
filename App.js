@@ -43,6 +43,9 @@ import {
   LogicMatrixGame,
   MusicalSoundboxStudio,
   MemoryPairsGame,
+  PatternRailwayGame,
+  DoubleTenFrameGame,
+  WordFactorySyllablesGame,
 } from './engine/index.js';
 import { CountAndSelectGame } from './engine/components/CountAndSelectGame.js';
 import { FindTheNumberFallGame } from './engine/components/FindTheNumberFallGame.js';
@@ -178,6 +181,7 @@ const playSound = (audioSrc, volumeScale) => {
 // 3. CURRICULUM & CATALOG DE FIȘE EXTENSIBILE (KHAN KIDS LIBRARY)
 const CURRICULUM_LIBRARY = {
   math: [
+    { id: 'double_ten', title: '🔟 Grila Dublă de 10 (Base-20)', desc: 'Adunare și trecerea peste zece cu jetoane colorate', isEngine: 'double_ten' },
     { id: 'math_signs', title: '➕ Semnele Magice (+ / -)', desc: 'Găsește semnul lipsă pentru a rezolva ecuația (LogicLike)', isEngine: 'math_signs' },
     { id: 'rods', title: '🧱 Bastonul celor 10 Cuburi (Base-Ten)', desc: 'Unește 10 cuburi galbene pentru a forma o bară magnetică', isEngine: 'rods' },
     { id: 'stones', title: '🐸 Săritura pe Nuferi (1-5)', desc: 'Ghidează broscuța de la 1 la 5 sărind pe nuferi cu stropi de apă', isEngine: 'stepping_stones' },
@@ -189,6 +193,7 @@ const CURRICULUM_LIBRARY = {
     { id: 'm5', title: 'Scădere: 5 - 2', a: 5, b: 2, op: '-', desc: 'Culege 2 morcovi din cele 5 căsuțe' },
   ],
   phonics: [
+    { id: 'word_factory', title: '🏭 Fabrica de Cuvinte (Silabe)', desc: 'Îmbină silabele pe banda rulantă pentru a forma cuvinte', isEngine: 'word_factory' },
     { id: 'bubbles', title: '🫧 Acvariul cu Bule Fonetice', desc: 'Sparge bulele de clăbuci cu litera cerută', isEngine: 'bubbles' },
     { id: 'fishing', title: '🎣 Pescuitul Fonetic cu Undița', desc: 'Prinde peștișorii cu litera căutată din adâncuri', isEngine: 'fishing' },
     { id: 'p1', title: 'Consoanele B, M, R', targets: ['B', 'M', 'R'], pool: ['B', 'A', 'M', 'E', 'R'], desc: 'Hrănește-l pe Ollo cu litere delicioase' },
@@ -218,6 +223,7 @@ const CURRICULUM_LIBRARY = {
     { id: 'mem3', title: 'Micul Explorator (2 perechi)', pairCount: 2, desc: 'Începe cu un nivel simplu și distractiv' },
   ],
   patterns: [
+    { id: 'pattern_railway', title: '🚂 Trenulețul Modelelor (AB, ABC, ABCD)', desc: 'Încarcă marfa potrivită în vagoanele trenulețului', isEngine: 'pattern_railway' },
     { id: 'odd_one_out', title: '🔍 Intrusul Logic (Odd-One-Out)', desc: 'Găsește elementul care nu se potrivește în grup', isEngine: 'odd_one_out' },
     { id: 'shadow_match', title: '👥 Găsește Umbra (Siluete)', desc: 'Recunoaște silueta corectă a personajului', isEngine: 'shadow_match' },
     { id: 'size_compare', title: '📏 Mărimi & Comparații', desc: 'Identifică cel mai mare, cel mai mic sau mijlociu element', isEngine: 'size_compare' },
@@ -399,6 +405,18 @@ export default function App() {
     }
     if (type === 'memory_pairs' || (type === 'memory' && (!config || !config.pairCount || config.isEngine === 'memory_pairs'))) {
       setAppMode('memory_pairs');
+      return;
+    }
+    if (type === 'pattern_railway' || (type === 'patterns' && config && config.isEngine === 'pattern_railway')) {
+      setAppMode('pattern_railway');
+      return;
+    }
+    if (type === 'double_ten') {
+      setAppMode('double_ten');
+      return;
+    }
+    if (type === 'word_factory') {
+      setAppMode('word_factory');
       return;
     }
 
@@ -668,7 +686,7 @@ export default function App() {
       <StatusBar barStyle="dark-content" />
 
       {/* TOP BAR / BARA SUPERIOARĂ KHAN KIDS */}
-      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'memory_pairs', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
+      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'memory_pairs', 'pattern_railway', 'double_ten', 'word_factory', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
         <View style={styles.topBar}>
           <ScrollView
             horizontal={true}
@@ -850,6 +868,9 @@ export default function App() {
 
               <View style={styles.moduleGrid}>
               {[
+                { id: 'pattern_railway', title: 'Trenulețul Modelelor', subtitle: 'Șiruri Logice cu Vagoane & Abur (Khan Kids)', badge: 'LOGICĂ & RITM', color: '#0284C7', mascot: IMAGES.sandyMascot, accent: '#E0F2FE' },
+                { id: 'double_ten', title: 'Grila Dublă de 10', subtitle: 'Adunare Base-20 & Trecerea peste 10 (Khan Kids)', badge: 'ADUNARE & ZECE', color: '#F59E0B', mascot: IMAGES.kodiMascot, accent: '#FEF3C7' },
+                { id: 'word_factory', title: 'Fabrica de Cuvinte', subtitle: 'Îmbină Silabele pe Banda Rulantă (Khan Kids)', badge: 'FONETICĂ & SILABE', color: '#16A34A', mascot: IMAGES.reyaMascot, accent: '#DCFCE7' },
                 { id: 'memory_pairs', title: 'Cartonașele Magice', subtitle: 'Găsește Perechile Gemene (Flip 3D)', badge: 'MEMORIE & VIZUAL', color: '#10AC84', mascot: IMAGES.reyaMascot, accent: '#EAF8F4' },
                 { id: 'scale', title: 'Cântarul Echilibrat', subtitle: 'Balanța Deductivă cu Fructe (LogicLike)', badge: 'LOGICĂ & MĂSURĂ', color: '#FF9F43', mascot: IMAGES.kodiMascot, accent: '#FFF3E0' },
                 { id: 'size_compare', title: 'Mărimi & Comparații', subtitle: 'Cel mai Mare sau cel mai Mic (LogicLike)', badge: 'MĂSURI & COMPARAȚII', color: '#00CEC9', mascot: IMAGES.sandyMascot, accent: '#E8F8F8' },
@@ -879,7 +900,7 @@ export default function App() {
                   key={mod.id}
                   style={[styles.moduleCard, { borderBottomColor: mod.color }]}
                   onPress={() => {
-                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'memory_pairs'].includes(mod.id)) {
+                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'memory_pairs', 'pattern_railway', 'double_ten', 'word_factory'].includes(mod.id)) {
                       launchWorksheet(mod.id, {});
                     } else if (mod.id === 'math') {
                       launchWorksheet('math', CURRICULUM_LIBRARY.math.find(m => !m.isEngine) || {});
@@ -1552,6 +1573,39 @@ export default function App() {
       {/* 22. MODUL: CARTONAȘELE MAGICE (KHAN KIDS 3D MEMORY MATCH) */}
       {appMode === 'memory_pairs' && (
         <MemoryPairsGame
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 23. MODUL: TRENULEȚUL MODELELOR (KHAN KIDS PATTERN RAILWAY) */}
+      {appMode === 'pattern_railway' && (
+        <PatternRailwayGame
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 24. MODUL: GRILA DUBLĂ DE 10 (KHAN KIDS DOUBLE TEN FRAME) */}
+      {appMode === 'double_ten' && (
+        <DoubleTenFrameGame
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 25. MODUL: FABRICA DE CUVINTE (KHAN KIDS SYLLABLE BLENDING) */}
+      {appMode === 'word_factory' && (
+        <WordFactorySyllablesGame
           onBack={() => setAppMode('hub')}
           onComplete={() => {
             triggerStarBonus(5);

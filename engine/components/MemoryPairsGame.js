@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { audioMixer } from '../audio/index.js';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics.js';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 
@@ -136,7 +137,7 @@ export const MemoryPairsGame = ({ onComplete, onBack }) => {
 
     // Haptic feedback
     try {
-      if (Platform.OS === 'android') Vibration.vibrate(15);
+      AndroidHaptics.pop();
       audioMixer.playSFX(require('../../assets/audio/SFX_pop.mp3'), 0.7);
     } catch (e) {}
 
@@ -164,7 +165,7 @@ export const MemoryPairsGame = ({ onComplete, onBack }) => {
         // MATCH!
         setTimeout(() => {
           try {
-            if (Platform.OS === 'android') Vibration.vibrate([0, 30, 40, 30]);
+            AndroidHaptics.success();
             audioMixer.playSFX(require('../../assets/audio/correct_chime.mp3'), 0.85);
             audioMixer.playSFX(require('../../assets/audio/BingoSuccessfulLineFIll.mp3'), 0.7);
           } catch (e) {}
@@ -190,7 +191,7 @@ export const MemoryPairsGame = ({ onComplete, onBack }) => {
           if (newMatches.length === currentDiff.pairs) {
             setIsGameWon(true);
             try {
-              if (Platform.OS === 'android') Vibration.vibrate([0, 60, 50, 80]);
+              AndroidHaptics.celebration();
               audioMixer.playSFX(require('../../assets/audio/SFX_royal.mp3'), 0.9);
               audioMixer.playVoice(require('../../assets/audio/ws_super.mp3'));
             } catch (e) {}
@@ -201,7 +202,7 @@ export const MemoryPairsGame = ({ onComplete, onBack }) => {
         // MISMATCH
         setTimeout(() => {
           try {
-            if (Platform.OS === 'android') Vibration.vibrate(40);
+            AndroidHaptics.warning();
             audioMixer.playSFX(require('../../assets/audio/SFX_squish.mp3'), 0.5);
           } catch (e) {}
 

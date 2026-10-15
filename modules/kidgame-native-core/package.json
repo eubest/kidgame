@@ -1,0 +1,18 @@
+{
+  "name": "kidgame-native-core",
+  "version": "1.0.0",
+  "description": "Android Native Performance Accelerator for KidGame",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {},
+  "keywords": [
+    "expo",
+    "expo-module",
+    "android",
+    "soundpool",
+    "haptics",
+    "performance"
+  ],
+  "author": "Android Native Performance Architect",
+  "license": "MIT"
+}

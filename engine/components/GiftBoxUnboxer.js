@@ -11,6 +11,8 @@ import {
 } from 'react-native';
 import { audioMixer } from '../audio';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics.js';
+import { GoldenStarGradient } from './GameGradients.js';
 
 const { width } = Dimensions.get('window');
 
@@ -75,6 +77,8 @@ export const GiftBoxUnboxer = ({ audio, onDressUp, onContinue }) => {
   const handleOpenBox = () => {
     if (isOpened) return;
     setIsOpened(true);
+
+    AndroidHaptics.celebration();
 
     audioMixer.playSFX(audio?.sfxPop || null, 0.9);
     audioMixer.playSFX(audio?.sfxReward || audio?.sfxRoyal || null, 1.0);
@@ -197,8 +201,10 @@ export const GiftBoxUnboxer = ({ audio, onDressUp, onContinue }) => {
         {/* Action Buttons */}
         <View style={styles.buttonRow}>
           {!isOpened ? (
-            <TouchableOpacity style={styles.tapCtaBtn} onPress={handleOpenBox}>
-              <Text style={styles.tapCtaText}>✨ Atinge pentru a Deschide! ✨</Text>
+            <TouchableOpacity activeOpacity={0.85} onPress={handleOpenBox}>
+              <GoldenStarGradient style={styles.tapCtaBtn}>
+                <Text style={styles.tapCtaText}>✨ Atinge pentru a Deschide! ✨</Text>
+              </GoldenStarGradient>
             </TouchableOpacity>
           ) : (
             <>
