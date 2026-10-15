@@ -8,12 +8,69 @@ import {
   Dimensions,
   Platform,
   Easing,
+  Vibration,
 } from 'react-native';
-import Svg, { Circle, Path, G, Text as SvgText, Ellipse } from 'react-native-svg';
+import Svg, { Circle, Path, G, Text as SvgText, Ellipse, Rect } from 'react-native-svg';
 import confetti from '../utils/confetti';
 import { audioMixer } from '../audio';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+
+// 4 Animale Interactive inspirate din LogicLike count-in-order
+export const ANIMAL_THEMES = [
+  {
+    id: 'frog',
+    name: 'Broscuța',
+    emoji: '🐸',
+    padType: 'nuferi',
+    padFill: '#2ECC71',
+    padTarget: '#27AE60',
+    padVisited: '#1ABC9C',
+    padItem: '🪷',
+    waterBg: '#0C2461',
+    headerBg: '#0A3D62',
+    banner: '🐸 Broscuța pe Nuferi',
+  },
+  {
+    id: 'rabbit',
+    name: 'Iepurașul',
+    emoji: '🐰',
+    padType: 'morcovi',
+    padFill: '#FF7675',
+    padTarget: '#D63031',
+    padVisited: '#E17055',
+    padItem: '🥕',
+    waterBg: '#1E3727',
+    headerBg: '#133926',
+    banner: '🐰 Iepurașul pe Pajiște',
+  },
+  {
+    id: 'bee',
+    name: 'Albinuța',
+    emoji: '🐝',
+    padType: 'flori',
+    padFill: '#FDCB6E',
+    padTarget: '#E1B12C',
+    padVisited: '#E58E26',
+    padItem: '🌸',
+    waterBg: '#341F97',
+    headerBg: '#2A1A80',
+    banner: '🐝 Albinuța din Floare în Floare',
+  },
+  {
+    id: 'squirrel',
+    name: 'Veverița',
+    emoji: '🐿️',
+    padType: 'ghinde',
+    padFill: '#E17055',
+    padTarget: '#C0392B',
+    padVisited: '#B53471',
+    padItem: '🌰',
+    waterBg: '#2F1E1E',
+    headerBg: '#3B1D1D',
+    banner: '🐿️ Veverița pe Butuci',
+  },
+];
 
 // Presets for pond lily pad sequences
 const LEVELS = [
@@ -98,6 +155,9 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
   const [levelIndex, setLevelIndex] = useState(0);
   const rawLevel = LEVELS[levelIndex];
 
+  // LogicLike Animal Theme selection (Broscuța 🐸, Iepurașul 🐰, Albinuța 🐝, Veverița 🐿️)
+  const [selectedAnimal, setSelectedAnimal] = useState(ANIMAL_THEMES[0]);
+
   const winDim = Dimensions.get('window');
   const [pondLayout, setPondLayout] = useState({
     width: winDim.width,
@@ -112,7 +172,7 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
   const [isVictory, setIsVictory] = useState(false);
   const [waterRipples, setWaterRipples] = useState([]);
 
-  // Frog position and animation
+  // Frog/Animal position and animation
   const initialPad = currentLevel.pads[0] || { x: pondLayout.width * 0.5, y: pondLayout.height - 90 };
   const frogPos = useRef(new Animated.ValueXY({ x: initialPad.x, y: initialPad.y - 45 })).current;
   const frogScale = useRef(new Animated.ValueXY({ x: 1, y: 1 })).current;
@@ -151,7 +211,7 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
     }
   }, [levelIndex]);
 
-  // Smoothly adjust frog position on screen orientation/layout changes without resetting progress
+  // Smoothly adjust animal position on screen orientation/layout changes without resetting progress
   useEffect(() => {
     const activePad = currentLevel.pads[currentStepIndex];
     if (activePad && !isJumping) {
@@ -166,9 +226,11 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
 
     if (pad.number === expectedNumber) {
       // Correct pad!
+      try { Vibration.vibrate(30); } catch (e) {}
       executeJump(pad, currentStepIndex + 1);
     } else if (pad.number !== currentLevel.targetNumbers[currentStepIndex]) {
       // Wrong pad tap!
+      try { Vibration.vibrate([0, 50, 40, 50]); } catch (e) {}
       handleWrongPad();
     }
   };
@@ -337,26 +399,55 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: selectedAnimal.headerBg }]}>
       {/* 1. Header Bar */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: selectedAnimal.headerBg }]}>
         <TouchableOpacity style={styles.backButton} onPress={onBack} activeOpacity={0.8}>
           <Text style={styles.backButtonText}>⬅ Înapoi</Text>
         </TouchableOpacity>
         <View style={styles.titleContainer}>
-          <Text style={styles.titleText}>🐸 Broscuța Săltăreață</Text>
+          <Text style={styles.titleText}>{selectedAnimal.banner}</Text>
           <Text style={styles.subtitleText}>{currentLevel.title}</Text>
         </View>
-        <View style={styles.badgeContainer}>
+        <View style={[styles.badgeContainer, { backgroundColor: selectedAnimal.padTarget }]}>
           <Text style={styles.badgeText}>
-            Pasul {currentStepIndex + 1} / {currentLevel.targetNumbers.length}
+            {currentStepIndex + 1} / {currentLevel.targetNumbers.length}
           </Text>
         </View>
       </View>
 
+      {/* 1.1 Selector de Animăluțe (LogicLike Animal Themes) */}
+      <View style={styles.animalSelectorRow}>
+        {ANIMAL_THEMES.map((theme) => {
+          const isSelected = selectedAnimal.id === theme.id;
+          return (
+            <TouchableOpacity
+              key={theme.id}
+              style={[
+                styles.animalThemeBtn,
+                isSelected && [styles.animalThemeBtnActive, { backgroundColor: theme.padFill }],
+              ]}
+              onPress={() => {
+                if (selectedAnimal.id !== theme.id) {
+                  setSelectedAnimal(theme);
+                  try { Vibration.vibrate(25); } catch (e) {}
+                  if (audio?.sfxPop) audioMixer.playSFX(audio.sfxPop, 0.7);
+                }
+              }}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.animalThemeEmoji}>{theme.emoji}</Text>
+              <Text style={[styles.animalThemeName, isSelected && styles.animalThemeNameActive]}>
+                {theme.name}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
       {/* 2. Lagoon Pond Canvas */}
       <View
-        style={styles.pondArea}
+        style={[styles.pondArea, { backgroundColor: selectedAnimal.waterBg }]}
         onLayout={(e) => {
           const { width: w, height: h } = e.nativeEvent.layout;
           if (w > 0 && h > 0 && (Math.abs(w - pondLayout.width) > 5 || Math.abs(h - pondLayout.height) > 5)) {
@@ -419,11 +510,17 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
           ))}
         </Svg>
 
-        {/* Lily Pads */}
+        {/* Lily Pads / Stepping Stones with Thematic Items */}
         {currentLevel.pads.map((pad) => {
           const isVisited = visitedPads.includes(pad.number);
           const isNextTarget =
             currentLevel.targetNumbers[currentStepIndex + 1] === pad.number;
+
+          const padColor = isVisited
+            ? selectedAnimal.padFill
+            : isNextTarget
+            ? selectedAnimal.padTarget
+            : selectedAnimal.padVisited;
 
           return (
             <TouchableOpacity
@@ -437,17 +534,24 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
             >
               <Svg width="90" height="80" viewBox="0 0 90 80">
                 {/* Pad Leaf Shadow */}
-                <Ellipse cx="45" cy="46" rx="42" ry="32" fill="#0E4429" opacity="0.4" />
-                {/* Pad Green Body */}
+                <Ellipse cx="45" cy="46" rx="42" ry="32" fill="#000000" opacity="0.35" />
+                {/* Pad Body */}
                 <Path
                   d="M 45 10 C 65 10, 85 22, 85 45 C 85 68, 65 75, 45 75 C 25 75, 5 68, 5 45 C 5 22, 25 10, 45 10 Z"
-                  fill={isVisited ? '#2ECC71' : isNextTarget ? '#27AE60' : '#1ABC9C'}
+                  fill={padColor}
                 />
-                {/* Lily Pad Cut Notch */}
-                <Path d="M 45 45 L 85 35 L 75 50 Z" fill="#167D48" opacity="0.5" />
-                {/* Water Flower Pink Accent */}
-                <Circle cx="45" cy="18" r="6" fill="#FF7675" />
-                <Circle cx="45" cy="18" r="3" fill="#FFEAA7" />
+                {/* Pad Cut Notch */}
+                <Path d="M 45 45 L 85 35 L 75 50 Z" fill="#000000" opacity="0.2" />
+                {/* Thematic Item Emoji Badge */}
+                <SvgText
+                  x="45"
+                  y="20"
+                  fontSize="13"
+                  textAnchor="middle"
+                  alignmentBaseline="central"
+                >
+                  {selectedAnimal.padItem}
+                </SvgText>
               </Svg>
 
               {/* Number Badge */}
@@ -485,7 +589,7 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
           <Text style={{ fontSize: 52 }}>🏆</Text>
         </View>
 
-        {/* The Hopping Frog Mascot */}
+        {/* The Hopping Animal Mascot */}
         <Animated.View
           style={[
             styles.frogContainer,
@@ -506,33 +610,83 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
           ]}
           pointerEvents="none"
         >
-          <Svg width="72" height="64" viewBox="0 0 72 64">
-            {/* Frog Shadow */}
-            <Ellipse cx="36" cy="56" rx="26" ry="7" fill="rgba(0,0,0,0.25)" />
-            {/* Frog Body */}
-            <Ellipse cx="36" cy="38" rx="28" ry="20" fill="#2ED573" />
-            <Ellipse cx="36" cy="42" rx="20" ry="14" fill="#7BED9F" />
-            {/* Frog Eyes */}
-            <Circle cx="22" cy="18" r="10" fill="#2ED573" />
-            <Circle cx="50" cy="18" r="10" fill="#2ED573" />
-            <Circle cx="22" cy="18" r="7" fill="#FFFFFF" />
-            <Circle cx="50" cy="18" r="7" fill="#FFFFFF" />
-            <Circle cx="24" cy="17" r="4" fill="#2F3542" />
-            <Circle cx="48" cy="17" r="4" fill="#2F3542" />
-            <Circle cx="22" cy="15" r="1.5" fill="#FFFFFF" />
-            <Circle cx="46" cy="15" r="1.5" fill="#FFFFFF" />
-            {/* Cheerful Smile */}
-            <Path
-              d="M 28 36 Q 36 44 44 36"
-              stroke="#1E272C"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              fill="none"
-            />
-            {/* Rosy Cheeks */}
-            <Circle cx="24" cy="38" r="3.5" fill="#FF6B81" opacity="0.8" />
-            <Circle cx="48" cy="38" r="3.5" fill="#FF6B81" opacity="0.8" />
-          </Svg>
+          {selectedAnimal.id === 'frog' && (
+            <Svg width="72" height="64" viewBox="0 0 72 64">
+              <Ellipse cx="36" cy="56" rx="26" ry="7" fill="rgba(0,0,0,0.25)" />
+              <Ellipse cx="36" cy="38" rx="28" ry="20" fill="#2ED573" />
+              <Ellipse cx="36" cy="42" rx="20" ry="14" fill="#7BED9F" />
+              <Circle cx="22" cy="18" r="10" fill="#2ED573" />
+              <Circle cx="50" cy="18" r="10" fill="#2ED573" />
+              <Circle cx="22" cy="18" r="7" fill="#FFFFFF" />
+              <Circle cx="50" cy="18" r="7" fill="#FFFFFF" />
+              <Circle cx="24" cy="17" r="4" fill="#2F3542" />
+              <Circle cx="48" cy="17" r="4" fill="#2F3542" />
+              <Circle cx="22" cy="15" r="1.5" fill="#FFFFFF" />
+              <Circle cx="46" cy="15" r="1.5" fill="#FFFFFF" />
+              <Path d="M 28 36 Q 36 44 44 36" stroke="#1E272C" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+              <Circle cx="24" cy="38" r="3.5" fill="#FF6B81" opacity="0.8" />
+              <Circle cx="48" cy="38" r="3.5" fill="#FF6B81" opacity="0.8" />
+            </Svg>
+          )}
+
+          {selectedAnimal.id === 'rabbit' && (
+            <Svg width="72" height="64" viewBox="0 0 72 64">
+              <Ellipse cx="36" cy="58" rx="24" ry="6" fill="rgba(0,0,0,0.25)" />
+              <Ellipse cx="25" cy="14" rx="7" ry="16" fill="#F1F2F6" />
+              <Ellipse cx="25" cy="14" rx="3.5" ry="11" fill="#FFB8B8" />
+              <Ellipse cx="47" cy="14" rx="7" ry="16" fill="#F1F2F6" />
+              <Ellipse cx="47" cy="14" rx="3.5" ry="11" fill="#FFB8B8" />
+              <Ellipse cx="36" cy="40" rx="26" ry="20" fill="#F8F9FA" />
+              <Circle cx="26" cy="36" r="4.5" fill="#2F3542" />
+              <Circle cx="46" cy="36" r="4.5" fill="#2F3542" />
+              <Circle cx="24.5" cy="34.5" r="1.5" fill="#FFFFFF" />
+              <Circle cx="44.5" cy="34.5" r="1.5" fill="#FFFFFF" />
+              <Circle cx="36" cy="42" r="3" fill="#FF7675" />
+              <Path d="M 16 41 L 28 42 M 16 45 L 28 44 M 56 41 L 44 42 M 56 45 L 44 44" stroke="#A4B0BE" strokeWidth="1.5" strokeLinecap="round" />
+              <Path d="M 32 46 Q 36 50 40 46" stroke="#2F3542" strokeWidth="2" strokeLinecap="round" fill="none" />
+              <Circle cx="22" cy="43" r="3" fill="#FF6B81" opacity="0.6" />
+              <Circle cx="50" cy="43" r="3" fill="#FF6B81" opacity="0.6" />
+            </Svg>
+          )}
+
+          {selectedAnimal.id === 'bee' && (
+            <Svg width="72" height="64" viewBox="0 0 72 64">
+              <Ellipse cx="36" cy="58" rx="24" ry="6" fill="rgba(0,0,0,0.25)" />
+              <Ellipse cx="22" cy="18" rx="14" ry="8" fill="rgba(255,255,255,0.75)" stroke="#74B9FF" strokeWidth="1.5" />
+              <Ellipse cx="50" cy="18" rx="14" ry="8" fill="rgba(255,255,255,0.75)" stroke="#74B9FF" strokeWidth="1.5" />
+              <Ellipse cx="36" cy="38" rx="25" ry="20" fill="#FDCB6E" />
+              <Path d="M 22 32 C 30 35, 42 35, 50 32" stroke="#2D3436" strokeWidth="4.5" strokeLinecap="round" />
+              <Path d="M 18 40 C 28 44, 44 44, 54 40" stroke="#2D3436" strokeWidth="4.5" strokeLinecap="round" />
+              <Path d="M 22 48 C 30 51, 42 51, 50 48" stroke="#2D3436" strokeWidth="4.5" strokeLinecap="round" />
+              <Circle cx="26" cy="30" r="5" fill="#2D3436" />
+              <Circle cx="46" cy="30" r="5" fill="#2D3436" />
+              <Circle cx="24.5" cy="28.5" r="2" fill="#FFFFFF" />
+              <Circle cx="44.5" cy="28.5" r="2" fill="#FFFFFF" />
+              <Path d="M 31 38 Q 36 43 41 38" stroke="#D63031" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+              <Circle cx="20" cy="35" r="2.5" fill="#FF7675" opacity="0.8" />
+              <Circle cx="52" cy="35" r="2.5" fill="#FF7675" opacity="0.8" />
+            </Svg>
+          )}
+
+          {selectedAnimal.id === 'squirrel' && (
+            <Svg width="72" height="64" viewBox="0 0 72 64">
+              <Ellipse cx="36" cy="58" rx="24" ry="6" fill="rgba(0,0,0,0.25)" />
+              <Path d="M 48 48 C 65 42, 68 20, 54 14 C 44 10, 42 22, 50 30" stroke="#E17055" strokeWidth="12" strokeLinecap="round" fill="none" />
+              <Path d="M 48 48 C 63 42, 66 22, 54 16 C 46 12, 44 22, 50 30" stroke="#FAB1A0" strokeWidth="5" strokeLinecap="round" fill="none" />
+              <Ellipse cx="32" cy="38" rx="22" ry="18" fill="#E17055" />
+              <Circle cx="20" cy="20" r="7" fill="#E17055" />
+              <Circle cx="20" cy="20" r="4" fill="#FAB1A0" />
+              <Circle cx="38" cy="20" r="7" fill="#E17055" />
+              <Circle cx="38" cy="20" r="4" fill="#FAB1A0" />
+              <Circle cx="25" cy="34" r="4" fill="#2D3436" />
+              <Circle cx="39" cy="34" r="4" fill="#2D3436" />
+              <Circle cx="24" cy="32.5" r="1.5" fill="#FFFFFF" />
+              <Circle cx="38" cy="32.5" r="1.5" fill="#FFFFFF" />
+              <Circle cx="32" cy="39" r="2.5" fill="#2D3436" />
+              <Path d="M 28 43 Q 32 47 36 43" stroke="#2D3436" strokeWidth="2" strokeLinecap="round" fill="none" />
+              <Circle cx="32" cy="48" r="5" fill="#B53471" />
+            </Svg>
+          )}
         </Animated.View>
       </View>
 
@@ -548,10 +702,10 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
           ]}
         >
           <View style={styles.victoryCard}>
-            <Text style={{ fontSize: 68, textAlign: 'center' }}>🏆🐸⭐</Text>
+            <Text style={{ fontSize: 68, textAlign: 'center' }}>🏆{selectedAnimal.emoji}⭐</Text>
             <Text style={styles.victoryTitle}>Bravo! Ai Reușit!</Text>
             <Text style={styles.victoryDesc}>
-              Broscuța a sărit veselă pe toți nuferii în ordinea corectă și a ajuns la comoară!
+              {selectedAnimal.name} a sărit vesel(ă) pe toți {selectedAnimal.padType} în ordinea corectă și a ajuns la comoară!
             </Text>
 
             <View style={styles.victoryButtonRow}>
@@ -564,7 +718,7 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
               </TouchableOpacity>
 
               <TouchableOpacity
-                style={[styles.modalButton, styles.nextButton]}
+                style={[styles.modalButton, styles.nextButton, { backgroundColor: selectedAnimal.padTarget }]}
                 onPress={nextLevel}
                 activeOpacity={0.85}
               >
@@ -594,6 +748,48 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: 'rgba(255, 255, 255, 0.15)',
     zIndex: 10,
+  },
+  animalSelectorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 8,
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    gap: 6,
+    zIndex: 10,
+  },
+  animalThemeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 5,
+    paddingHorizontal: 10,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 1.5,
+    borderColor: 'transparent',
+  },
+  animalThemeBtnActive: {
+    borderColor: '#FFFFFF',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  animalThemeEmoji: {
+    fontSize: 16,
+    marginRight: 5,
+  },
+  animalThemeName: {
+    color: 'rgba(255,255,255,0.75)',
+    fontSize: 12,
+    fontWeight: '700',
+    fontFamily: Platform.OS === 'web' ? 'Fredoka, sans-serif' : 'System',
+  },
+  animalThemeNameActive: {
+    color: '#FFFFFF',
+    fontWeight: '900',
   },
   backButton: {
     backgroundColor: '#3C6382',

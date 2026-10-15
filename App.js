@@ -39,6 +39,9 @@ import {
   OddOneOutGame,
   MathSignsEquationGame,
   ShadowMatchGame,
+  SizeComparisonGame,
+  LogicMatrixGame,
+  MusicalSoundboxStudio,
 } from './engine/index.js';
 import { CountAndSelectGame } from './engine/components/CountAndSelectGame.js';
 import { FindTheNumberFallGame } from './engine/components/FindTheNumberFallGame.js';
@@ -159,6 +162,8 @@ const AUDIO = {
   ws_super: require('./assets/audio/ws_super.mp3'),
   ws_shadow_intro: require('./assets/audio/ws_shadow_intro.mp3'),
   ws_shadow_win: require('./assets/audio/ws_shadow_win.mp3'),
+  ws_size_intro: require('./assets/audio/ws_size_intro.mp3'),
+  ws_size_win: require('./assets/audio/ws_size_win.mp3'),
 };
 
 const playVoice = (audioSrc, options) => {
@@ -213,6 +218,9 @@ const CURRICULUM_LIBRARY = {
   patterns: [
     { id: 'odd_one_out', title: '🔍 Intrusul Logic (Odd-One-Out)', desc: 'Găsește elementul care nu se potrivește în grup', isEngine: 'odd_one_out' },
     { id: 'shadow_match', title: '👥 Găsește Umbra (Siluete)', desc: 'Recunoaște silueta corectă a personajului', isEngine: 'shadow_match' },
+    { id: 'size_compare', title: '📏 Mărimi & Comparații', desc: 'Identifică cel mai mare, cel mai mic sau mijlociu element', isEngine: 'size_compare' },
+    { id: 'logic_matrix', title: '🧩 Tabelul Fermecat (Matrice)', desc: 'Descoperă regula rândurilor și coloanelor (LogicLike)', isEngine: 'logic_matrix' },
+    { id: 'soundbox', title: '🎹 Studioul Muzical Sandy', desc: 'Cântă la pian, xilofon și exersează memoria muzicală', isEngine: 'soundbox' },
     { id: 'oneline', title: '⚡ Puzzle Dintr-o Linie (Eulerian)', desc: 'Unește toate punctele fără să ridici degetul', isEngine: 'oneline' },
     { id: 'pat1', title: 'Model Alternant: A - B', pattern: ['🐶', '🐸', '🐶', '🐸'], target: '🐶', options: ['🐶', '🥕', '🐵'], desc: 'Ce animăluț urmează în șir?' },
     { id: 'pat2', title: 'Model Dublu: A - A - B', pattern: ['🥕', '🥕', '🐵', '🥕', '🥕'], target: '🐵', options: ['🐸', '🐵', '🐶'], desc: 'Descoperă regula morcovilor și maimuțicii' },
@@ -373,6 +381,18 @@ export default function App() {
     }
     if (type === 'shadow_match') {
       setAppMode('shadow_match');
+      return;
+    }
+    if (type === 'size_compare') {
+      setAppMode('size_compare');
+      return;
+    }
+    if (type === 'logic_matrix') {
+      setAppMode('logic_matrix');
+      return;
+    }
+    if (type === 'soundbox') {
+      setAppMode('soundbox');
       return;
     }
 
@@ -642,7 +662,7 @@ export default function App() {
       <StatusBar barStyle="dark-content" />
 
       {/* TOP BAR / BARA SUPERIOARĂ KHAN KIDS */}
-      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
+      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
         <View style={styles.topBar}>
           <ScrollView
             horizontal={true}
@@ -824,6 +844,9 @@ export default function App() {
 
               <View style={styles.moduleGrid}>
               {[
+                { id: 'size_compare', title: 'Mărimi & Comparații', subtitle: 'Cel mai Mare sau cel mai Mic (LogicLike)', badge: 'MĂSURI & COMPARAȚII', color: '#00CEC9', mascot: IMAGES.sandyMascot, accent: '#E8F8F8' },
+                { id: 'logic_matrix', title: 'Tabelul Fermecat', subtitle: 'Matrice Logice 2x2 și 3x3 (LogicLike)', badge: 'GÂNDIRE SPAȚIALĂ', color: '#6C5CE7', mascot: IMAGES.peckMascot, accent: '#F0EFFE' },
+                { id: 'soundbox', title: 'Studioul Muzical Sandy', subtitle: 'Pian, Xilofon & Melodii Magice (Khan Kids)', badge: 'EDUCAȚIE MUZICALĂ', color: '#FD79A8', mascot: IMAGES.sandyMascot, accent: '#FFF0F5' },
                 { id: 'odd_one_out', title: 'Intrusul Logic', subtitle: 'Găsește Elementul Diferit (LogicLike)', badge: 'LOGICĂ DEDUCTIVĂ', color: '#E84393', mascot: IMAGES.peckMascot, accent: '#FDEBF3' },
                 { id: 'math_signs', title: 'Semnele Magice', subtitle: 'Operatori Lipsă + și - (LogicLike)', badge: 'ALGEBRĂ TIMPURIE', color: '#0984E3', mascot: IMAGES.kodiMascot, accent: '#EBF5FB' },
                 { id: 'shadow_match', title: 'Găsește Umbra', subtitle: 'Percepție Spațială & Siluete (LogicLike)', badge: 'DISCERNĂMÂNT VIZUAL', color: '#6C5CE7', mascot: IMAGES.sandyMascot, accent: '#F0EFFE' },
@@ -850,7 +873,7 @@ export default function App() {
                   key={mod.id}
                   style={[styles.moduleCard, { borderBottomColor: mod.color }]}
                   onPress={() => {
-                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match'].includes(mod.id)) {
+                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox'].includes(mod.id)) {
                       launchWorksheet(mod.id, {});
                     } else if (mod.id === 'math') {
                       launchWorksheet('math', CURRICULUM_LIBRARY.math.find(m => !m.isEngine) || {});
@@ -1477,6 +1500,41 @@ export default function App() {
       {appMode === 'shadow_match' && (
         <ShadowMatchGame
           audio={AUDIO}
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 19. MODUL: MĂRIMI & COMPARAȚII (LOGICLIKE SIZE COMPARISON) */}
+      {appMode === 'size_compare' && (
+        <SizeComparisonGame
+          audio={AUDIO}
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 20. MODUL: TABELUL FERMECAT (LOGICLIKE MATRIX PUZZLES) */}
+      {appMode === 'logic_matrix' && (
+        <LogicMatrixGame
+          audio={AUDIO}
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 21. MODUL: STUDIUL MUZICAL AL LUI SANDY (KHAN KIDS MUSIC SOUNDBOX) */}
+      {appMode === 'soundbox' && (
+        <MusicalSoundboxStudio
           onBack={() => setAppMode('hub')}
           onComplete={() => {
             triggerStarBonus(5);

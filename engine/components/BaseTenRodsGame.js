@@ -7,6 +7,7 @@ import {
   Dimensions,
   Animated,
   Easing,
+  Platform,
 } from 'react-native';
 import { audioMixer } from '../audio/index.js';
 import confetti from '../utils/confetti';
@@ -211,7 +212,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#E8F5E9',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingTop: Platform.OS === 'android' ? 44 : 14,
+    paddingBottom: 14,
     paddingHorizontal: 16,
   },
   header: {

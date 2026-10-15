@@ -21,3 +21,6 @@ export { FindTheNumberFallGame } from './FindTheNumberFallGame.js';
 export { OddOneOutGame } from './OddOneOutGame.js';
 export { MathSignsEquationGame } from './MathSignsEquationGame.js';
 export { ShadowMatchGame } from './ShadowMatchGame.js';
+export { SizeComparisonGame } from './SizeComparisonGame.js';
+export { LogicMatrixGame } from './LogicMatrixGame.js';
+export { MusicalSoundboxStudio } from './MusicalSoundboxStudio.js';
