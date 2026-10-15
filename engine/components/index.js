@@ -24,3 +24,4 @@ export { ShadowMatchGame } from './ShadowMatchGame.js';
 export { SizeComparisonGame } from './SizeComparisonGame.js';
 export { LogicMatrixGame } from './LogicMatrixGame.js';
 export { MusicalSoundboxStudio } from './MusicalSoundboxStudio.js';
+export { MemoryPairsGame } from './MemoryPairsGame.js';

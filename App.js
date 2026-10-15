@@ -42,6 +42,7 @@ import {
   SizeComparisonGame,
   LogicMatrixGame,
   MusicalSoundboxStudio,
+  MemoryPairsGame,
 } from './engine/index.js';
 import { CountAndSelectGame } from './engine/components/CountAndSelectGame.js';
 import { FindTheNumberFallGame } from './engine/components/FindTheNumberFallGame.js';
@@ -211,6 +212,7 @@ const CURRICULUM_LIBRARY = {
     },
   ],
   memory: [
+    { id: 'memory_pairs', title: '🃏 Cartonașele Magice (Perechi 3D)', desc: 'Găsește perechile ascunse de animăluțe, fructe sau vehicule cu rotație 3D', isEngine: 'memory_pairs' },
     { id: 'mem1', title: 'Prietenii Neîndemânatici (4 perechi)', pairCount: 4, desc: 'Câine, Broscuță, Maimuță, Iepuraș' },
     { id: 'mem2', title: 'Perechi Rapide (3 perechi)', pairCount: 3, desc: 'Găsește repede animăluțele gemene' },
     { id: 'mem3', title: 'Micul Explorator (2 perechi)', pairCount: 2, desc: 'Începe cu un nivel simplu și distractiv' },
@@ -393,6 +395,10 @@ export default function App() {
     }
     if (type === 'soundbox') {
       setAppMode('soundbox');
+      return;
+    }
+    if (type === 'memory_pairs' || (type === 'memory' && (!config || !config.pairCount || config.isEngine === 'memory_pairs'))) {
+      setAppMode('memory_pairs');
       return;
     }
 
@@ -662,7 +668,7 @@ export default function App() {
       <StatusBar barStyle="dark-content" />
 
       {/* TOP BAR / BARA SUPERIOARĂ KHAN KIDS */}
-      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
+      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'memory_pairs', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
         <View style={styles.topBar}>
           <ScrollView
             horizontal={true}
@@ -844,6 +850,8 @@ export default function App() {
 
               <View style={styles.moduleGrid}>
               {[
+                { id: 'memory_pairs', title: 'Cartonașele Magice', subtitle: 'Găsește Perechile Gemene (Flip 3D)', badge: 'MEMORIE & VIZUAL', color: '#10AC84', mascot: IMAGES.reyaMascot, accent: '#EAF8F4' },
+                { id: 'scale', title: 'Cântarul Echilibrat', subtitle: 'Balanța Deductivă cu Fructe (LogicLike)', badge: 'LOGICĂ & MĂSURĂ', color: '#FF9F43', mascot: IMAGES.kodiMascot, accent: '#FFF3E0' },
                 { id: 'size_compare', title: 'Mărimi & Comparații', subtitle: 'Cel mai Mare sau cel mai Mic (LogicLike)', badge: 'MĂSURI & COMPARAȚII', color: '#00CEC9', mascot: IMAGES.sandyMascot, accent: '#E8F8F8' },
                 { id: 'logic_matrix', title: 'Tabelul Fermecat', subtitle: 'Matrice Logice 2x2 și 3x3 (LogicLike)', badge: 'GÂNDIRE SPAȚIALĂ', color: '#6C5CE7', mascot: IMAGES.peckMascot, accent: '#F0EFFE' },
                 { id: 'soundbox', title: 'Studioul Muzical Sandy', subtitle: 'Pian, Xilofon & Melodii Magice (Khan Kids)', badge: 'EDUCAȚIE MUZICALĂ', color: '#FD79A8', mascot: IMAGES.sandyMascot, accent: '#FFF0F5' },
@@ -853,7 +861,6 @@ export default function App() {
                 { id: 'count_select', title: 'Numără și Alege', subtitle: 'Mingiuțe Magice & Animăluțe (LogicLike)', badge: 'NUMĂRĂTOARE & FIZICĂ', color: '#00B4D8', mascot: IMAGES.kodiMascot, accent: '#E0F7FA' },
                 { id: 'find_number', title: 'Mâncăciosul de Numere', subtitle: 'Fructe Căzătoare & Cifre Țintă (LogicLike)', badge: 'RECUNOAȘTERE CIFRE', color: '#E67E22', mascot: IMAGES.olloMascot, accent: '#FEF9E7' },
                 { id: 'fishing', title: 'Pescuitul Sunetelor', subtitle: 'Undița Magnetică cu Peștișori (Khan Kids)', badge: 'PESCUIT & CITIRE', color: '#0984E3', mascot: IMAGES.peckMascot, accent: '#EBF5FB' },
-                { id: 'scale', title: 'Cântarul Echilibrat', subtitle: 'Balanța Deductivă cu Fructe (LogicLike)', badge: 'LOGICĂ & MĂSURĂ', color: '#FF9F43', mascot: IMAGES.kodiMascot, accent: '#FFF3E0' },
                 { id: 'stepping_stones', title: 'Broscuța Săltăreață', subtitle: 'Numărătoare & Salturi pe Nuferi (LogicLike)', badge: 'NUMĂRĂTOARE & FIZICĂ', color: '#2ED573', mascot: IMAGES.peckMascot, accent: '#E8F8F5' },
                 { id: 'oneline', title: 'Trasează dintr-o Mișcare', subtitle: 'Puzzle-uri Euleriene fără ridicarea degetului', badge: 'TOPOLOGIE & GRAFURI', color: '#9B59B6', mascot: IMAGES.drawMascot, accent: '#F4ECF7' },
                 { id: 'rods', title: 'Bastonul celor 10 Cuburi', subtitle: 'Base-Ten: Unește 10 cuburi într-o bară', badge: 'MATEMATICĂ FIZICĂ', color: '#FF9800', mascot: IMAGES.kodiMascot, accent: '#FFF3E0' },
@@ -865,7 +872,6 @@ export default function App() {
                 { id: 'tracing', title: 'Trasare Vectorială', subtitle: 'Litere & Cifre cu Ghidaj și Steluțe', badge: 'GRAFOMOTRICITATE', color: '#FF4757', mascot: IMAGES.drawMascot, accent: '#FFF0F3' },
                 { id: 'books', title: 'Cărți & Povești', subtitle: 'Citire Sincronizată cu Voce Română', badge: 'LECTURĂ INTERACTIVĂ', color: '#0984E3', mascot: IMAGES.kodiMascot, accent: '#EBF5FB' },
                 { id: 'patterns', title: 'Modele Logice', subtitle: 'Găsește regula și completează șirul', badge: 'LOGICĂ & RITM', color: '#6C5CE7', mascot: IMAGES.sandyMascot, accent: '#F0EFFE' },
-                { id: 'memory', title: 'Cartonașele Magice', subtitle: 'Găsește Animăluțele Gemene', badge: 'MEMORIE VIZUALĂ', color: '#10AC84', mascot: IMAGES.reyaMascot, accent: '#EAF8F4' },
                 { id: 'coloring', title: 'Atelierul de Pictură', subtitle: 'Litere, Numere & Forme de Colorat', badge: 'ARTĂ & CREATIVITATE', color: '#FFA502', mascot: IMAGES.drawMascot, accent: '#FFFDF0' },
                 { id: 'clubhouse', title: 'Căsuța cu Jucării', subtitle: 'Instrumente Muzicale Interactive', badge: 'SALA CU SURPRIZE', color: '#845EC2', mascot: IMAGES.sandyMascot, accent: '#F7F3FC' },
               ].map((mod) => (
@@ -873,7 +879,7 @@ export default function App() {
                   key={mod.id}
                   style={[styles.moduleCard, { borderBottomColor: mod.color }]}
                   onPress={() => {
-                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox'].includes(mod.id)) {
+                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'size_compare', 'logic_matrix', 'soundbox', 'memory_pairs'].includes(mod.id)) {
                       launchWorksheet(mod.id, {});
                     } else if (mod.id === 'math') {
                       launchWorksheet('math', CURRICULUM_LIBRARY.math.find(m => !m.isEngine) || {});
@@ -1535,6 +1541,17 @@ export default function App() {
       {/* 21. MODUL: STUDIUL MUZICAL AL LUI SANDY (KHAN KIDS MUSIC SOUNDBOX) */}
       {appMode === 'soundbox' && (
         <MusicalSoundboxStudio
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 22. MODUL: CARTONAȘELE MAGICE (KHAN KIDS 3D MEMORY MATCH) */}
+      {appMode === 'memory_pairs' && (
+        <MemoryPairsGame
           onBack={() => setAppMode('hub')}
           onComplete={() => {
             triggerStarBonus(5);

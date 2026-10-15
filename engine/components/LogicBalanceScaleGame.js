@@ -7,6 +7,8 @@ import {
   Dimensions,
   Animated,
   Easing,
+  Platform,
+  Vibration,
 } from 'react-native';
 import { audioMixer } from '../audio/index.js';
 import confetti from '../utils/confetti';
@@ -52,6 +54,32 @@ const BALANCE_PUZZLES = [
       { id: 's_banana2', emoji: '🍌', name: 'Banană', weight: 2 },
       { id: 's_orange', emoji: '🍊', name: 'Portocală', weight: 1 },
       { id: 's_strawberry', emoji: '🍓', name: 'Căpșună', weight: 1 },
+    ],
+  },
+  {
+    id: 'p4',
+    title: 'Misiunea Spațială a Rachetei',
+    desc: 'Racheta cosmică are masa 5. Pune steluțe și sateliți pentru echilibru!',
+    leftItems: [{ id: 'rk1', emoji: '🚀', name: 'Rachetă', weight: 5 }],
+    rightInitial: [],
+    targetWeight: 5,
+    shelfItems: [
+      { id: 's_star', emoji: '⭐', name: 'Steluță', weight: 2 },
+      { id: 's_sat', emoji: '🛰️', name: 'Satelit', weight: 1 },
+      { id: 's_planet', emoji: '🪐', name: 'Planetă', weight: 3 },
+    ],
+  },
+  {
+    id: 'p5',
+    title: 'Ferma Veselă a Văcuței',
+    desc: 'Văcuța Milka are masa 6! Pune oițe și purceluși pe celălalt taler!',
+    leftItems: [{ id: 'cow1', emoji: '🐮', name: 'Văcuță', weight: 6 }],
+    rightInitial: [{ id: 'pig_init', emoji: '🐷', name: 'Purceluș', weight: 2 }],
+    targetWeight: 6,
+    shelfItems: [
+      { id: 's_sheep', emoji: '🐑', name: 'Oiță', weight: 2 },
+      { id: 's_chick', emoji: '🐥', name: 'Puișor', weight: 1 },
+      { id: 's_pig', emoji: '🐷', name: 'Purceluș', weight: 2 },
     ],
   },
 ];
@@ -114,6 +142,7 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
     if (rightWeight === leftWeight && rightPanItems.length > 0 && !isBalanced) {
       setIsBalanced(true);
       try {
+        Vibration.vibrate([0, 50, 40, 50]);
         audioMixer.playSFX(require('../../assets/audio/correct_chime.mp3'), 0.85);
         audioMixer.playSFX(require('../../assets/audio/BingoSuccessfulLineFIll.mp3'), 0.9);
         audioMixer.playVoice(require('../../assets/audio/balance_win.mp3'));
@@ -127,6 +156,7 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
     if (isBalanced) return;
 
     try {
+      Vibration.vibrate(25);
       audioMixer.playSFX(require('../../assets/audio/SFX_pop.mp3'), 0.7);
     } catch (e) {}
 
@@ -139,6 +169,7 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
     if (isBalanced) return;
 
     try {
+      Vibration.vibrate(20);
       audioMixer.playSFX(require('../../assets/audio/SFX_squish.mp3'), 0.6);
     } catch (e) {}
 
@@ -325,7 +356,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 14,
+    paddingBottom: 14,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 3,
     borderBottomColor: '#DFE4EA',
