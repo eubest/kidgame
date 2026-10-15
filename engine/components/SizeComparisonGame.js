@@ -11,6 +11,7 @@ import {
   ScrollView,
 } from 'react-native';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 import { audioMixer } from '../audio/index.js';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -139,9 +140,7 @@ export const SizeComparisonGame = ({ audio, onBack, onComplete }) => {
   const handleSelectItem = (item) => {
     if (isSolved) return;
 
-    if (Platform.OS === 'android') {
-      Vibration.vibrate(30);
-    }
+    AndroidHaptics.tap();
 
     if (item.isTarget) {
       // CORRECT
@@ -150,6 +149,7 @@ export const SizeComparisonGame = ({ audio, onBack, onComplete }) => {
       setScoreStars((s) => s + 1);
 
       try {
+        AndroidHaptics.notificationSuccess();
         if (audio?.sfxChime) audioMixer.playSFX(audio.sfxChime);
         setTimeout(() => {
           if (audio?.ws_size_win) {
@@ -184,9 +184,7 @@ export const SizeComparisonGame = ({ audio, onBack, onComplete }) => {
       confetti({ particleCount: 85, spread: 75, origin: { y: 0.6 } });
     } else {
       // INCORRECT
-      if (Platform.OS === 'android') {
-        Vibration.vibrate([0, 40, 30, 40]);
-      }
+      AndroidHaptics.warning();
 
       try {
         if (audio?.sfxIncorrect) audioMixer.playSFX(audio.sfxIncorrect);
@@ -205,6 +203,7 @@ export const SizeComparisonGame = ({ audio, onBack, onComplete }) => {
   };
 
   const handleNextLevel = () => {
+    AndroidHaptics.tap();
     try {
       if (audio?.sfxButton) audioMixer.playSFX(audio.sfxButton);
     } catch (e) {}
@@ -212,6 +211,7 @@ export const SizeComparisonGame = ({ audio, onBack, onComplete }) => {
     if (levelIndex < LEVELS.length - 1) {
       setLevelIndex(levelIndex + 1);
     } else {
+      AndroidHaptics.victoryFanfare();
       confetti({ particleCount: 150, spread: 90 });
       try {
         if (audio?.sfxRoyal) audioMixer.playSFX(audio.sfxRoyal);
@@ -221,6 +221,7 @@ export const SizeComparisonGame = ({ audio, onBack, onComplete }) => {
   };
 
   const repeatPrompt = () => {
+    AndroidHaptics.selectionClick();
     try {
       if (audio?.ws_size_intro) audioMixer.playVoice(audio.ws_size_intro);
     } catch (e) {}
@@ -345,7 +346,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 12,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',

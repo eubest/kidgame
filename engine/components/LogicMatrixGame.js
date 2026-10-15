@@ -9,6 +9,7 @@ import {
   Vibration,
   Platform,
   ScrollView,
+} from 'react-native';
 import confetti from '../utils/confetti';
 import { AndroidHaptics } from '../native/AndroidHaptics';
 import { audioMixer } from '../audio/index.js';

@@ -165,7 +165,7 @@ export const MusicalSoundboxStudio = ({ audio, onBack, onComplete }) => {
                   isSelected && { backgroundColor: inst.color, borderColor: inst.color },
                 ]}
                 onPress={() => {
-                  if (Platform.OS === 'android') Vibration.vibrate(20);
+                  AndroidHaptics.selectionClick();
                   setSelectedInst(inst);
                   try {
                     const soundSrc = audio?.[inst.soundKey];
@@ -254,7 +254,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 12,
+    paddingBottom: 12,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',

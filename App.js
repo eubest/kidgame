@@ -1578,6 +1578,7 @@ export default function App() {
       {/* 21. MODUL: STUDIUL MUZICAL AL LUI SANDY (KHAN KIDS MUSIC SOUNDBOX) */}
       {appMode === 'soundbox' && (
         <MusicalSoundboxStudio
+          audio={AUDIO}
           onBack={() => setAppMode('hub')}
           onComplete={() => {
             triggerStarBonus(5);

@@ -9,8 +9,10 @@ import {
   Easing,
   Platform,
   Vibration,
+  Modal,
 } from 'react-native';
 import { audioMixer } from '../audio/index.js';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 import confetti from '../utils/confetti';
 
 const { width } = Dimensions.get('window');
@@ -142,7 +144,7 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
     if (rightWeight === leftWeight && rightPanItems.length > 0 && !isBalanced) {
       setIsBalanced(true);
       try {
-        Vibration.vibrate([0, 50, 40, 50]);
+        AndroidHaptics.notificationSuccess();
         audioMixer.playSFX(require('../../assets/audio/correct_chime.mp3'), 0.85);
         audioMixer.playSFX(require('../../assets/audio/BingoSuccessfulLineFIll.mp3'), 0.9);
         audioMixer.playVoice(require('../../assets/audio/balance_win.mp3'));
@@ -155,8 +157,13 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
   const handleAddItem = (item) => {
     if (isBalanced) return;
 
+    if (rightPanItems.length >= 6) {
+      AndroidHaptics.warning();
+      return;
+    }
+
     try {
-      Vibration.vibrate(25);
+      AndroidHaptics.impactLight();
       audioMixer.playSFX(require('../../assets/audio/SFX_pop.mp3'), 0.7);
     } catch (e) {}
 
@@ -169,7 +176,7 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
     if (isBalanced) return;
 
     try {
-      Vibration.vibrate(20);
+      AndroidHaptics.selectionClick();
       audioMixer.playSFX(require('../../assets/audio/SFX_squish.mp3'), 0.6);
     } catch (e) {}
 
@@ -177,9 +184,11 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
   };
 
   const handleNextPuzzle = () => {
+    AndroidHaptics.tap();
     if (puzzleIdx < BALANCE_PUZZLES.length - 1) {
       setPuzzleIdx((prev) => prev + 1);
     } else {
+      AndroidHaptics.victoryFanfare();
       if (onComplete) onComplete();
     }
   };
@@ -254,8 +263,22 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
             },
           ]}
         >
-          {/* Left Pan Assembly */}
-          <View style={styles.panAssemblyLeft}>
+          {/* Left Pan Assembly with Counter-Rotation */}
+          <Animated.View
+            style={[
+              styles.panAssemblyLeft,
+              {
+                transform: [
+                  {
+                    rotate: beamTilt.interpolate({
+                      inputRange: [-15, 15],
+                      outputRange: ['15deg', '-15deg'],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
             <View style={styles.panRopes} />
             <View style={styles.panPlate}>
               {currentPuzzle.leftItems.map((item, idx) => (
@@ -265,10 +288,24 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
                 </View>
               ))}
             </View>
-          </View>
+          </Animated.View>
 
-          {/* Right Pan Assembly */}
-          <View style={styles.panAssemblyRight}>
+          {/* Right Pan Assembly with Counter-Rotation */}
+          <Animated.View
+            style={[
+              styles.panAssemblyRight,
+              {
+                transform: [
+                  {
+                    rotate: beamTilt.interpolate({
+                      inputRange: [-15, 15],
+                      outputRange: ['15deg', '-15deg'],
+                    }),
+                  },
+                ],
+              },
+            ]}
+          >
             <View style={styles.panRopes} />
             <View style={[styles.panPlate, styles.panPlateInteractive]}>
               {rightPanItems.length === 0 ? (
@@ -287,7 +324,7 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
                 ))
               )}
             </View>
-          </View>
+          </Animated.View>
         </Animated.View>
       </View>
 
@@ -324,7 +361,7 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
       </View>
 
       {/* 4. WIN MODAL */}
-      {isBalanced && (
+      <Modal transparent={true} visible={isBalanced} animationType="fade">
         <View style={styles.winOverlay}>
           <View style={styles.winCard}>
             <Text style={{ fontSize: 60, marginBottom: 12 }}>🎉</Text>
@@ -333,14 +370,14 @@ export const LogicBalanceScaleGame = ({ onComplete, onBack }) => {
               Ai rezolvat puzzle-ul! Ambele talere au acum exact aceeași greutate ({leftWeight}).
             </Text>
 
-            <TouchableOpacity style={styles.winBtn} onPress={handleNextPuzzle}>
+            <TouchableOpacity style={styles.winBtn} onPress={handleNextPuzzle} activeOpacity={0.8}>
               <Text style={styles.winBtnText}>
                 {puzzleIdx < BALANCE_PUZZLES.length - 1 ? 'Următoarea Balanță ➔' : 'Revendică Comoara! 🎁'}
               </Text>
             </TouchableOpacity>
           </View>
         </View>
-      )}
+      </Modal>
     </View>
   );
 };
@@ -375,26 +412,30 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   titleWrap: {
+    flex: 1,
     alignItems: 'center',
+    marginHorizontal: 8,
   },
   gameTitle: {
-    fontSize: 18,
+    fontSize: 15,
     fontWeight: '800',
     color: '#2F3542',
+    textAlign: 'center',
   },
   gameSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#747D8C',
     marginTop: 2,
+    textAlign: 'center',
   },
   statusPill: {
     backgroundColor: '#F1F2F6',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: 20,
   },
   statusText: {
-    fontSize: 15,
+    fontSize: 13,
     fontWeight: '800',
     color: '#747D8C',
   },
@@ -454,18 +495,18 @@ const styles = StyleSheet.create({
   fulcrumTriangle: {
     width: 0,
     height: 0,
-    borderLeftWidth: 32,
-    borderRightWidth: 32,
-    borderBottomWidth: 100,
+    borderLeftWidth: 24,
+    borderRightWidth: 24,
+    borderBottomWidth: 80,
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderBottomColor: '#747D8C',
   },
   fulcrumBase: {
-    width: 130,
-    height: 18,
+    width: 120,
+    height: 16,
     backgroundColor: '#2F3542',
-    borderRadius: 9,
+    borderRadius: 8,
   },
   balanceBeam: {
     width: Math.min(width * 0.62, 480),
@@ -498,8 +539,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#747D8C',
   },
   panPlate: {
-    width: Math.min(width * 0.36, 140),
-    minHeight: 60,
+    width: Math.min(width * 0.38, 145),
+    minHeight: 65,
+    maxHeight: 110,
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
     borderWidth: 3,
@@ -508,7 +550,8 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 6,
+    padding: 4,
+    overflow: 'hidden',
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 8,
@@ -524,13 +567,13 @@ const styles = StyleSheet.create({
   },
   panItemBadge: {
     alignItems: 'center',
-    margin: 4,
+    margin: 2,
   },
   panItemEmoji: {
-    fontSize: 32,
+    fontSize: 24,
   },
   weightBadge: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '800',
     color: '#747D8C',
   },
@@ -603,11 +646,11 @@ const styles = StyleSheet.create({
     color: '#57606F',
   },
   winOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    flex: 1,
     backgroundColor: 'rgba(0,0,0,0.65)',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 200,
+    padding: 24,
   },
   winCard: {
     backgroundColor: '#FFFFFF',
