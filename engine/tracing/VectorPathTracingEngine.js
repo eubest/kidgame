@@ -115,28 +115,38 @@ export const VectorPathTracingEngine = ({
   // Convert touch event to SVG coordinate space (300 x 300 viewBox)
   const getSvgCoordinates = useCallback(
     (e, gestureState) => {
-      let clientX = gestureState.moveX;
-      let clientY = gestureState.moveY;
+      let relX = 0;
+      let relY = 0;
 
-      if ((!clientX || clientX === 0) && e.nativeEvent) {
-        clientX = e.nativeEvent.pageX || e.nativeEvent.clientX || 0;
-        clientY = e.nativeEvent.pageY || e.nativeEvent.clientY || 0;
+      if (e?.nativeEvent && typeof e.nativeEvent.locationX === 'number' && typeof e.nativeEvent.locationY === 'number') {
+        relX = e.nativeEvent.locationX;
+        relY = e.nativeEvent.locationY;
+      } else {
+        let clientX = gestureState?.moveX;
+        let clientY = gestureState?.moveY;
+
+        if ((!clientX || clientX === 0) && e?.nativeEvent) {
+          clientX = e.nativeEvent.pageX || e.nativeEvent.clientX || 0;
+          clientY = e.nativeEvent.pageY || e.nativeEvent.clientY || 0;
+        }
+
+        // Web bounding rect fallback
+        if (Platform.OS === 'web' && containerRef.current?.getBoundingClientRect) {
+          const rect = containerRef.current.getBoundingClientRect();
+          containerLayout.x = rect.left + (window.scrollX || 0);
+          containerLayout.y = rect.top + (window.scrollY || 0);
+          containerLayout.width = rect.width;
+          containerLayout.height = rect.height;
+        }
+
+        relX = clientX - containerLayout.x;
+        relY = clientY - containerLayout.y;
       }
 
-      // Web bounding rect fallback
-      if (Platform.OS === 'web' && containerRef.current?.getBoundingClientRect) {
-        const rect = containerRef.current.getBoundingClientRect();
-        containerLayout.x = rect.left + (window.scrollX || 0);
-        containerLayout.y = rect.top + (window.scrollY || 0);
-        containerLayout.width = rect.width;
-        containerLayout.height = rect.height;
-      }
-
-      const relX = clientX - containerLayout.x;
-      const relY = clientY - containerLayout.y;
-
-      const scaleX = (pathData?.width || 300) / (containerLayout.width || width);
-      const scaleY = (pathData?.height || 300) / (containerLayout.height || height);
+      const targetW = containerLayout.width > 0 ? containerLayout.width : width;
+      const targetH = containerLayout.height > 0 ? containerLayout.height : height;
+      const scaleX = (pathData?.width || 300) / targetW;
+      const scaleY = (pathData?.height || 300) / targetH;
 
       return {
         svgX: relX * scaleX,
@@ -231,12 +241,15 @@ export const VectorPathTracingEngine = ({
     ]
   );
 
+  const handlePointerRef = useRef(handlePointerInteraction);
+  handlePointerRef.current = handlePointerInteraction;
+
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
-      onPanResponderGrant: (e, gs) => handlePointerInteraction(e, gs),
-      onPanResponderMove: (e, gs) => handlePointerInteraction(e, gs),
+      onPanResponderGrant: (e, gs) => handlePointerRef.current?.(e, gs),
+      onPanResponderMove: (e, gs) => handlePointerRef.current?.(e, gs),
     })
   ).current;
 

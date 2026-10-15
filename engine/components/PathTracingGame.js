@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-nati
 import { VectorPathTracingEngine, PATH_PRESETS } from '../tracing/index.js';
 import { audioMixer } from '../audio/index.js';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics.js';
 
 export const PathTracingGame = ({ audio, onBack }) => {
   const [selectedPresetKey, setSelectedPresetKey] = useState('letterA');
@@ -18,14 +19,17 @@ export const PathTracingGame = ({ audio, onBack }) => {
   }, []);
 
   const handleWaypointHit = (strokeIndex, waypointIndex) => {
+    AndroidHaptics.light();
     audioMixer.playSFX(audio?.sfxPop || null, 0.4);
   };
 
   const handleStrokeComplete = (strokeIndex) => {
+    AndroidHaptics.medium();
     audioMixer.playSFX(audio?.sfxChime || null, 0.8);
   };
 
   const handlePathComplete = () => {
+    AndroidHaptics.victoryFanfare();
     setStars((s) => s + 3);
     audioMixer.playSFX(audio?.sfxRoyal || audio?.sfxBingo || null);
     audioMixer.playVoice(audio?.traceWin || audio?.kodiAwesome || null, { duck: true });
