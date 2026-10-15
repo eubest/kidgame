@@ -191,30 +191,28 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
     );
   };
 
-  const getRelativeTouch = (e, gestureState) => {
-    let clientX = gestureState.moveX;
-    let clientY = gestureState.moveY;
+  const startTouchPos = useRef({ x: 0, y: 0 }).current;
 
-    if ((!clientX || clientX === 0) && e.nativeEvent) {
-      clientX = e.nativeEvent.pageX || e.nativeEvent.clientX || 0;
-      clientY = e.nativeEvent.pageY || e.nativeEvent.clientY || 0;
+  const getRelativeTouch = (e, gestureState, isStart = false) => {
+    if (isStart) {
+      const locX = e.nativeEvent?.locationX ?? ((e.nativeEvent?.pageX || 0) - containerLayout.x);
+      const locY = e.nativeEvent?.locationY ?? ((e.nativeEvent?.pageY || 0) - containerLayout.y);
+      startTouchPos.x = locX;
+      startTouchPos.y = locY;
+      return { x: locX, y: locY };
     }
 
-    if (Platform.OS === 'web' && containerRef.current?.getBoundingClientRect) {
-      const rect = containerRef.current.getBoundingClientRect();
-      containerLayout.x = rect.left + (window.scrollX || 0);
-      containerLayout.y = rect.top + (window.scrollY || 0);
-      containerLayout.width = rect.width;
-      containerLayout.height = rect.height;
+    if (e.nativeEvent?.locationX !== undefined && e.nativeEvent?.locationX !== null) {
+      return { x: e.nativeEvent.locationX, y: e.nativeEvent.locationY };
     }
 
-    // On native Android, if measureInWindow is active, subtract containerLayout
-    const relX = clientX - containerLayout.x;
-    const relY = clientY - containerLayout.y;
-    return { x: relX, y: relY };
+    return {
+      x: startTouchPos.x + (gestureState?.dx || 0),
+      y: startTouchPos.y + (gestureState?.dy || 0),
+    };
   };
 
-  const findNearestNode = (relX, relY, radiusTolerance = 46) => {
+  const findNearestNode = (relX, relY, radiusTolerance = 55) => {
     for (const node of currentPuzzle.nodes) {
       const dist = Math.hypot(node.x - relX, node.y - relY);
       if (dist <= radiusTolerance) {
@@ -224,22 +222,51 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
     return null;
   };
 
-  const handleTouchStart = (e, gs) => {
-    if (isVictory) return;
-    const { x, y } = getRelativeTouch(e, gs);
-    const hitNode = findNearestNode(x, y, 46);
-
-    if (hitNode) {
+  const handleDirectNodePress = (hitNode) => {
+    if (isVictory || !hitNode) return;
+    if (!activeNodeId) {
       AndroidHaptics.light();
-      setIsDrawing(true);
       setActiveNodeId(hitNode.id);
       setVisitedNodesOrder([hitNode.id]);
       setVisitedEdgeIds([]);
-      setCurrentDragPos({ x, y });
-
-      if (audio?.sfxPop) {
-        audioMixer.playSFX(audio.sfxPop, 0.7);
+      if (audio?.sfxPop) audioMixer.playSFX(audio.sfxPop, 0.7);
+    } else {
+      if (hitNode.id === activeNodeId) return;
+      const edge = findEdge(activeNodeId, hitNode.id);
+      if (edge && !visitedEdgeIds.includes(edge.id)) {
+        AndroidHaptics.tap();
+        const newEdges = [...visitedEdgeIds, edge.id];
+        const newNodes = [...visitedNodesOrder, hitNode.id];
+        setVisitedEdgeIds(newEdges);
+        setVisitedNodesOrder(newNodes);
+        setActiveNodeId(hitNode.id);
+        if (audio?.sfxChime) audioMixer.playSFX(audio.sfxChime, 0.85);
+        if (newEdges.length === currentPuzzle.edges.length) {
+          handleVictory();
+        }
+      } else if (
+        visitedNodesOrder.length >= 2 &&
+        hitNode.id === visitedNodesOrder[visitedNodesOrder.length - 2]
+      ) {
+        setVisitedEdgeIds(visitedEdgeIds.slice(0, -1));
+        setVisitedNodesOrder(visitedNodesOrder.slice(0, -1));
+        setActiveNodeId(hitNode.id);
+        if (audio?.sfxSquish) audioMixer.playSFX(audio.sfxSquish, 0.6);
+      } else {
+        AndroidHaptics.warning();
       }
+    }
+  };
+
+  const handleTouchStart = (e, gs) => {
+    if (isVictory) return;
+    const { x, y } = getRelativeTouch(e, gs, true);
+    const hitNode = findNearestNode(x, y, 55);
+
+    if (hitNode) {
+      handleDirectNodePress(hitNode);
+      setIsDrawing(true);
+      setCurrentDragPos({ x, y });
     }
   };
 
@@ -250,7 +277,7 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
     setCurrentDragPos({ x, y });
 
     // Check if dragging near an adjacent vertex
-    const nearNode = findNearestNode(x, y, 36);
+    const nearNode = findNearestNode(x, y, 42);
 
     if (nearNode && nearNode.id !== activeNodeId) {
       // Check if there is an edge between activeNodeId and nearNode.id
@@ -279,7 +306,6 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
         nearNode.id === visitedNodesOrder[visitedNodesOrder.length - 2]
       ) {
         // Child is backtracking to undo previous step!
-        const lastEdgeId = visitedEdgeIds[visitedEdgeIds.length - 1];
         setVisitedEdgeIds(visitedEdgeIds.slice(0, -1));
         setVisitedNodesOrder(visitedNodesOrder.slice(0, -1));
         setActiveNodeId(nearNode.id);
@@ -294,14 +320,7 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
   const handleTouchEnd = () => {
     if (!isVictory) {
       setCurrentDragPos(null);
-      // If puzzle not finished, prompt to continue or reset
-      if (visitedEdgeIds.length < currentPuzzle.edges.length) {
-        // Reset state so child can try again with a clean stroke
-        setIsDrawing(false);
-        setActiveNodeId(null);
-        setVisitedEdgeIds([]);
-        setVisitedNodesOrder([]);
-      }
+      setIsDrawing(false);
     }
   };
 
@@ -479,7 +498,10 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
             const isStartCandidate = !isDrawing;
 
             return (
-              <G key={`node-${node.id}`}>
+              <G
+                key={`node-${node.id}`}
+                onPress={() => handleDirectNodePress(node)}
+              >
                 {/* Outer Glow on Active or Start Nodes */}
                 {(isActive || isStartCandidate) && (
                   <Circle
