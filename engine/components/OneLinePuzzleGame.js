@@ -12,6 +12,7 @@ import {
 import Svg, { Line, Circle, G, Text as SvgText, Path } from 'react-native-svg';
 import confetti from '../utils/confetti';
 import { audioMixer } from '../audio';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 
 const PUZZLE_LEVELS = [
   {
@@ -229,6 +230,7 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
     const hitNode = findNearestNode(x, y, 46);
 
     if (hitNode) {
+      AndroidHaptics.light();
       setIsDrawing(true);
       setActiveNodeId(hitNode.id);
       setVisitedNodesOrder([hitNode.id]);
@@ -256,6 +258,7 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
 
       if (edge && !visitedEdgeIds.includes(edge.id)) {
         // Valid forward step along unvisited edge!
+        AndroidHaptics.tap();
         const newEdges = [...visitedEdgeIds, edge.id];
         const newNodes = [...visitedNodesOrder, nearNode.id];
 
@@ -306,6 +309,7 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
     setIsVictory(true);
     setIsDrawing(false);
     setCurrentDragPos(null);
+    AndroidHaptics.victoryFanfare();
 
     if (audio?.oneLineWin) {
       audioMixer.playVoice(audio.oneLineWin, 1.0);
@@ -574,7 +578,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 14,
     paddingBottom: 10,
     backgroundColor: 'rgba(30, 39, 46, 0.95)',
     borderBottomWidth: 2,

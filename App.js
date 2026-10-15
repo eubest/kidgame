@@ -168,6 +168,22 @@ const AUDIO = {
   ws_shadow_win: require('./assets/audio/ws_shadow_win.mp3'),
   ws_size_intro: require('./assets/audio/ws_size_intro.mp3'),
   ws_size_win: require('./assets/audio/ws_size_win.mp3'),
+  frogIntro: require('./assets/audio/frog_intro.mp3'),
+  frogWin: require('./assets/audio/frog_win.mp3'),
+  frogAlmost: require('./assets/audio/frog_almost.mp3'),
+  frogOac1: require('./assets/audio/frog_oac1.mp3'),
+  frogOac2: require('./assets/audio/frog_oac2.mp3'),
+  wardrobeIntro: require('./assets/audio/wardrobe_intro.mp3'),
+  wardrobeKodi: require('./assets/audio/wardrobe_kodi.mp3'),
+  wardrobeOllo: require('./assets/audio/wardrobe_ollo.mp3'),
+  wardrobePeck: require('./assets/audio/wardrobe_peck.mp3'),
+  wardrobeCheer1: require('./assets/audio/wardrobe_cheer1.mp3'),
+  wardrobeCheer2: require('./assets/audio/wardrobe_cheer2.mp3'),
+  wardrobeGiggle: require('./assets/audio/wardrobe_giggle.mp3'),
+  wardrobeWin: require('./assets/audio/wardrobe_win.mp3'),
+  oneLineIntroRo: require('./assets/audio/oneline_intro.mp3'),
+  oneLineHintRo: require('./assets/audio/oneline_hint.mp3'),
+  oneLineWinRo: require('./assets/audio/oneline_win.mp3'),
 };
 
 const playVoice = (audioSrc, options) => {

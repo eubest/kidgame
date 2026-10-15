@@ -9,29 +9,66 @@ import {
   ScrollView,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { audioMixer } from '../audio';
 import confetti from '../utils/confetti';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 
 const { width } = Dimensions.get('window');
 
 const MASCOTS = [
-  { id: 'ollo', name: 'Ollo Elefănțelul', img: require('../../assets/images/ollo_mascot.png'), color: '#4CD137' },
-  { id: 'kodi', name: 'Kodi Ursulețul', img: require('../../assets/images/kodi_mascot.png'), color: '#FFA502' },
-  { id: 'peck', name: 'Peck Ciocănitoarea', img: require('../../assets/images/peck_mascot.png'), color: '#FF4757' },
-  { id: 'sandy', name: 'Sandy Dingo', img: require('../../assets/images/sandy_mascot.png'), color: '#3742FA' },
-  { id: 'reya', name: 'Reya Ropitorul', img: require('../../assets/images/reya_mascot.png'), color: '#9B59B6' },
+  {
+    id: 'ollo',
+    name: 'Ollo Elefănțelul',
+    sprite: require('../../assets/images/mascots/ollo.png'),
+    roomBg: require('../../assets/images/ollo_room_bg.png'),
+    tabThumb: require('../../assets/images/ollo_mascot.png'),
+    color: '#0284C7',
+  },
+  {
+    id: 'kodi',
+    name: 'Kodi Ursulețul',
+    sprite: require('../../assets/images/mascots/kodi.png'),
+    roomBg: require('../../assets/images/kodi_room_bg.png'),
+    tabThumb: require('../../assets/images/kodi_mascot.png'),
+    color: '#F59E0B',
+  },
+  {
+    id: 'peck',
+    name: 'Peck Ciocănitoarea',
+    sprite: require('../../assets/images/mascots/peck.png'),
+    roomBg: require('../../assets/images/peck_room_bg.png'),
+    tabThumb: require('../../assets/images/peck_mascot.png'),
+    color: '#EF4444',
+  },
+  {
+    id: 'sandy',
+    name: 'Sandy Dingo',
+    sprite: require('../../assets/images/mascots/sandy.png'),
+    roomBg: require('../../assets/images/sandy_room_bg.png'),
+    tabThumb: require('../../assets/images/sandy_mascot.png'),
+    color: '#EC4899',
+  },
+  {
+    id: 'reya',
+    name: 'Reya Roșcata',
+    sprite: require('../../assets/images/mascots/reya.png'),
+    roomBg: require('../../assets/images/ollo_room_bg.png'),
+    tabThumb: require('../../assets/images/reya_mascot.png'),
+    color: '#8B5CF6',
+  },
 ];
 
 const ACCESSORIES = [
-  { id: 'acc1', name: 'Pălărie Petrecere', img: require('../../assets/rewards/characterrewards_ollo1.png'), top: -20, left: 25, size: 90 },
-  { id: 'acc2', name: 'Joben Elegant', img: require('../../assets/rewards/characterrewards_ollo2.png'), top: -30, left: 20, size: 95 },
-  { id: 'acc3', name: 'Ochelari Soare', img: require('../../assets/rewards/characterrewards_ollo3.png'), top: 40, left: 35, size: 80 },
-  { id: 'acc4', name: 'Coroană de Aur', img: require('../../assets/rewards/characterrewards_ollo10.png'), top: -25, left: 25, size: 90 },
-  { id: 'acc5', name: 'Cască Aviator', img: require('../../assets/rewards/characterrewards_ollo12.png'), top: -25, left: 15, size: 105 },
-  { id: 'acc6', name: 'Fundiță Roz', img: require('../../assets/rewards/characterrewards_ollo15.png'), top: 85, left: 45, size: 70 },
-  { id: 'acc7', name: 'Fular Călduros', img: require('../../assets/rewards/characterrewards_ollo18.png'), top: 110, left: 25, size: 100 },
-  { id: 'acc8', name: 'Tichie Magică', img: require('../../assets/rewards/characterrewards_ollo20.png'), top: -25, left: 30, size: 85 },
+  { id: 'hat_crown', name: 'Coroană Regală', img: require('../../assets/images/hats/kodihat4.png') },
+  { id: 'hat_straw', name: 'Pălărie cu Flori', img: require('../../assets/images/hats/kodihat1.png') },
+  { id: 'hat_pirate', name: 'Pălărie Pirați', img: require('../../assets/images/hats/kodihat3.png') },
+  { id: 'hat_farmer', name: 'Pălărie de Paie', img: require('../../assets/images/hats/kodihat5.png') },
+  { id: 'hat_chef', name: 'Tichie Bucătar', img: require('../../assets/images/hats/kodihat6.png') },
+  { id: 'hat_fire', name: 'Cască Pompier', img: require('../../assets/images/hats/peckhat1.png') },
+  { id: 'hat_party', name: 'Coif Petrecere', img: require('../../assets/images/hats/peckhat2.png') },
+  { id: 'hat_aviator', name: 'Cască Aviator', img: require('../../assets/images/hats/peckhat4.png') },
 ];
 
 export const MascotDecoratorRoom = ({ images, audio, onBack }) => {
@@ -48,23 +85,60 @@ export const MascotDecoratorRoom = ({ images, audio, onBack }) => {
 
   const currentEquipped = equippedItems[selectedMascot.id] || [];
 
-  const handleToggleAccessory = (acc) => {
-    audioMixer.playSFX(audio?.sfxPop || null, 0.8);
+  const handleMascotSelect = (mascot) => {
+    setSelectedMascot(mascot);
+    AndroidHaptics.light();
+    audioMixer.playSFX(audio?.sfxButton || null, 0.7);
 
+    if (mascot.id === 'kodi' && audio?.wardrobeKodi) {
+      audioMixer.playVoice(audio.wardrobeKodi, 1.0);
+    } else if (mascot.id === 'ollo' && audio?.wardrobeOllo) {
+      audioMixer.playVoice(audio.wardrobeOllo, 1.0);
+    } else if (mascot.id === 'peck' && audio?.wardrobePeck) {
+      audioMixer.playVoice(audio.wardrobePeck, 1.0);
+    }
+  };
+
+  const handleMascotTickle = () => {
+    AndroidHaptics.light();
+    Animated.sequence([
+      Animated.timing(bounceAnim, { toValue: 1.2, duration: 120, useNativeDriver: false }),
+      Animated.timing(bounceAnim, { toValue: 0.9, duration: 100, useNativeDriver: false }),
+      Animated.spring(bounceAnim, { toValue: 1, friction: 3, tension: 50, useNativeDriver: false }),
+    ]).start();
+
+    if (audio?.wardrobeGiggle) {
+      audioMixer.playVoice(audio.wardrobeGiggle, 1.0);
+    } else if (audio?.sfxSquish) {
+      audioMixer.playSFX(audio.sfxSquish, 0.8);
+    }
+  };
+
+  const handleToggleAccessory = (acc) => {
     const isEquipped = currentEquipped.some((item) => item.id === acc.id);
     let nextList;
 
     if (isEquipped) {
+      AndroidHaptics.light();
+      audioMixer.playSFX(audio?.sfxPop || null, 0.8);
       nextList = currentEquipped.filter((item) => item.id !== acc.id);
     } else {
+      AndroidHaptics.success();
       nextList = [...currentEquipped, acc];
       // Celebrate joy bounce
       Animated.sequence([
-        Animated.timing(bounceAnim, { toValue: 1.15, duration: 150, useNativeDriver: false }),
+        Animated.timing(bounceAnim, { toValue: 1.18, duration: 150, useNativeDriver: false }),
         Animated.spring(bounceAnim, { toValue: 1, friction: 3, tension: 40, useNativeDriver: false }),
       ]).start();
+
       audioMixer.playSFX(audio?.sfxSquish || null);
       confetti({ particleCount: 35, spread: 60, origin: { y: 0.5 } });
+
+      // Play joyful cheer voice
+      const cheer = Math.random() > 0.5 ? audio?.wardrobeCheer1 : audio?.wardrobeCheer2;
+      if (cheer) {
+        audioMixer.playVoice(cheer, 1.0);
+      }
     }
 
     setEquippedItems({
@@ -74,6 +148,7 @@ export const MascotDecoratorRoom = ({ images, audio, onBack }) => {
   };
 
   const handleClear = () => {
+    AndroidHaptics.light();
     audioMixer.playSFX(audio?.sfxWhoosh || null);
     setEquippedItems({
       ...equippedItems,
@@ -83,78 +158,87 @@ export const MascotDecoratorRoom = ({ images, audio, onBack }) => {
 
   return (
     <ImageBackground
-      source={images?.roomBg || require('../../assets/images/room_bg.png')}
+      source={selectedMascot.roomBg}
       style={styles.container}
       resizeMode="cover"
     >
       <View style={styles.overlay}>
         {/* Top Header */}
         <View style={styles.header}>
-          <TouchableOpacity style={styles.backBtn} onPress={onBack}>
-            <Text style={styles.backBtnText}>⬅️ Înapoi la Orășel</Text>
+          <TouchableOpacity
+            style={styles.backBtn}
+            onPress={() => {
+              AndroidHaptics.light();
+              onBack();
+            }}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.backBtnText}>← Înapoi</Text>
           </TouchableOpacity>
           <View style={styles.titleWrap}>
-            <Text style={styles.title}>Salonul de Modă & Decorare</Text>
-            <Text style={styles.subTitle}>Alege un prieten și îmbracă-l cu accesoriile câștigate!</Text>
+            <Text style={styles.title}>👗 Salonul de Modă</Text>
+            <Text style={styles.subTitle}>Alege hăinuțe și accesorii haioase!</Text>
           </View>
-          <TouchableOpacity style={styles.clearBtn} onPress={handleClear}>
-            <Text style={styles.clearBtnText}>🧹 Șterge Hăinuțele</Text>
+          <TouchableOpacity
+            style={styles.clearBtn}
+            onPress={handleClear}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.clearBtnText}>🧹 Curăță</Text>
           </TouchableOpacity>
         </View>
 
         {/* Mascot Selector Bar */}
-        <View style={styles.mascotBar}>
-          {MASCOTS.map((m) => {
-            const isSelected = selectedMascot.id === m.id;
-            return (
-              <TouchableOpacity
-                key={m.id}
-                style={[
-                  styles.mascotTab,
-                  isSelected && { borderColor: m.color, backgroundColor: '#FFFFFF', transform: [{ scale: 1.08 }] },
-                ]}
-                onPress={() => {
-                  audioMixer.playSFX(audio?.sfxButton || null);
-                  setSelectedMascot(m);
-                }}
-              >
-                <Image source={m.img} style={styles.mascotTabImg} resizeMode="contain" />
-                <Text style={[styles.mascotTabText, isSelected && { color: m.color, fontWeight: '800' }]}>
-                  {m.name.split(' ')[0]}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+        <View style={styles.mascotBarWrap}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.mascotBarScroll}
+          >
+            {MASCOTS.map((m) => {
+              const isSelected = selectedMascot.id === m.id;
+              return (
+                <TouchableOpacity
+                  key={m.id}
+                  style={[
+                    styles.mascotTab,
+                    isSelected && { borderColor: m.color, backgroundColor: '#FFFFFF', transform: [{ scale: 1.05 }] },
+                  ]}
+                  onPress={() => handleMascotSelect(m)}
+                  activeOpacity={0.75}
+                >
+                  <Image source={m.tabThumb} style={styles.mascotTabImg} resizeMode="contain" />
+                  <Text style={[styles.mascotTabText, isSelected && { color: m.color, fontWeight: '800' }]}>
+                    {m.name.split(' ')[0]}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
         </View>
 
         {/* Center Presentation Stage */}
         <View style={styles.stage}>
-          <Animated.View style={[styles.mascotPlatform, { transform: [{ scale: bounceAnim }] }]}>
-            {/* Mascot Base Figure */}
-            <Image
-              source={selectedMascot.img}
-              style={styles.mascotImg}
-              resizeMode="contain"
-            />
-
-            {/* Overlaid Equipped Accessories */}
-            {currentEquipped.map((acc) => (
+          <TouchableOpacity activeOpacity={0.9} onPress={handleMascotTickle}>
+            <Animated.View style={[styles.mascotPlatform, { transform: [{ scale: bounceAnim }] }]}>
+              {/* Mascot Base Figure */}
               <Image
-                key={acc.id}
-                source={acc.img}
-                style={[
-                  styles.accessoryOverlay,
-                  {
-                    top: acc.top,
-                    left: acc.left,
-                    width: acc.size,
-                    height: acc.size,
-                  },
-                ]}
+                source={selectedMascot.sprite}
+                style={styles.mascotImg}
                 resizeMode="contain"
               />
-            ))}
-          </Animated.View>
+
+              {/* Overlaid Equipped Accessories */}
+              {currentEquipped.map((acc) => (
+                <Image
+                  key={acc.id}
+                  source={acc.img}
+                  style={styles.accessoryOverlay}
+                  resizeMode="contain"
+                />
+              ))}
+            </Animated.View>
+          </TouchableOpacity>
         </View>
 
         {/* Bottom Wardrobe Drawer */}
@@ -195,9 +279,11 @@ const styles = StyleSheet.create({
   },
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
     justifyContent: 'space-between',
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: Platform.OS === 'android' ? 44 : 16,
   },
   header: {
     flexDirection: 'row',
@@ -245,30 +331,33 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     fontSize: 13,
   },
-  mascotBar: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
+  mascotBarWrap: {
     marginVertical: 6,
+  },
+  mascotBarScroll: {
+    flexDirection: 'row',
+    paddingHorizontal: 6,
+    gap: 8,
+    alignItems: 'center',
   },
   mascotTab: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.85)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 20,
     borderWidth: 3,
     borderColor: 'transparent',
     elevation: 2,
-    gap: 8,
+    gap: 6,
   },
   mascotTabImg: {
-    width: 38,
-    height: 38,
+    width: 34,
+    height: 34,
   },
   mascotTabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: '#57606F',
   },
@@ -281,9 +370,14 @@ const styles = StyleSheet.create({
   mascotPlatform: {
     width: 240,
     height: 240,
+    borderRadius: 120,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 4,
+    borderColor: '#FED7AA',
     alignItems: 'center',
     justifyContent: 'center',
     position: 'relative',
+    elevation: 6,
   },
   mascotImg: {
     width: 220,
@@ -291,6 +385,10 @@ const styles = StyleSheet.create({
   },
   accessoryOverlay: {
     position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '100%',
+    height: '100%',
     zIndex: 10,
   },
   wardrobeDrawer: {

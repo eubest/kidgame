@@ -13,6 +13,7 @@ import {
 import Svg, { Circle, Path, G, Text as SvgText, Ellipse, Rect } from 'react-native-svg';
 import confetti from '../utils/confetti';
 import { audioMixer } from '../audio';
+import { AndroidHaptics } from '../native/AndroidHaptics';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -226,11 +227,11 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
 
     if (pad.number === expectedNumber) {
       // Correct pad!
-      try { Vibration.vibrate(30); } catch (e) {}
+      AndroidHaptics.waterSplash();
       executeJump(pad, currentStepIndex + 1);
     } else if (pad.number !== currentLevel.targetNumbers[currentStepIndex]) {
       // Wrong pad tap!
-      try { Vibration.vibrate([0, 50, 40, 50]); } catch (e) {}
+      AndroidHaptics.warning();
       handleWrongPad();
     }
   };
@@ -362,6 +363,7 @@ export const SteppingStonesPathGame = ({ audio, images, onBack, onComplete }) =>
 
   const triggerVictory = () => {
     setIsVictory(true);
+    AndroidHaptics.victoryFanfare();
 
     if (audio?.steppingStonesWin) {
       audioMixer.playVoice(audio.steppingStonesWin, 1.0);
@@ -742,7 +744,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingTop: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 14,
     paddingBottom: 10,
     backgroundColor: 'rgba(10, 61, 98, 0.95)',
     borderBottomWidth: 2,
