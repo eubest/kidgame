@@ -13,13 +13,5 @@
     "production": {
       "autoIncrement": true
     }
-  },
-  "update": {
-    "preview": {
-      "branch": "preview"
-    },
-    "production": {
-      "branch": "production"
-    }
   }
 }
