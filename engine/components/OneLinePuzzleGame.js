@@ -366,6 +366,13 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
   ).current;
 
   const nextPuzzle = () => {
+    setActiveNodeId(null);
+    setVisitedEdgeIds([]);
+    setVisitedNodesOrder([]);
+    setCurrentDragPos(null);
+    setIsDrawing(false);
+    setIsVictory(false);
+    victoryScale.setValue(0);
     if (levelIdx < PUZZLE_LEVELS.length - 1) {
       setLevelIdx(levelIdx + 1);
     } else {
@@ -451,8 +458,10 @@ export const OneLinePuzzleGame = ({ audio, images, onBack, onComplete }) => {
           {/* Glowing Green Traced Edges */}
           {visitedEdgeIds.map((edgeId) => {
             const edge = currentPuzzle.edges.find((e) => e.id === edgeId);
+            if (!edge) return null;
             const u = currentPuzzle.nodes.find((n) => n.id === edge.from);
             const v = currentPuzzle.nodes.find((n) => n.id === edge.to);
+            if (!u || !v) return null;
 
             return (
               <G key={`glow-${edge.id}`}>
