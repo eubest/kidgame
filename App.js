@@ -36,6 +36,9 @@ import {
   ScratchpadOverlay,
   PhonicsFishingGame,
   LogicBalanceScaleGame,
+  OddOneOutGame,
+  MathSignsEquationGame,
+  ShadowMatchGame,
 } from './engine/index.js';
 import { CountAndSelectGame } from './engine/components/CountAndSelectGame.js';
 import { FindTheNumberFallGame } from './engine/components/FindTheNumberFallGame.js';
@@ -149,6 +152,13 @@ const AUDIO = {
   findNumberIntro: require('./assets/audio/find_number_intro.mp3'),
   findNumberWin: require('./assets/audio/find_number_win.mp3'),
   findNumberWrong: require('./assets/audio/find_number_wrong.mp3'),
+  ws_odd_intro: require('./assets/audio/ws_odd_intro.mp3'),
+  ws_odd_win: require('./assets/audio/ws_odd_win.mp3'),
+  ws_odd_hint: require('./assets/audio/ws_odd_hint.mp3'),
+  ws_try_again: require('./assets/audio/ws_try_again.mp3'),
+  ws_super: require('./assets/audio/ws_super.mp3'),
+  ws_shadow_intro: require('./assets/audio/ws_shadow_intro.mp3'),
+  ws_shadow_win: require('./assets/audio/ws_shadow_win.mp3'),
 };
 
 const playVoice = (audioSrc, options) => {
@@ -162,6 +172,7 @@ const playSound = (audioSrc, volumeScale) => {
 // 3. CURRICULUM & CATALOG DE FIȘE EXTENSIBILE (KHAN KIDS LIBRARY)
 const CURRICULUM_LIBRARY = {
   math: [
+    { id: 'math_signs', title: '➕ Semnele Magice (+ / -)', desc: 'Găsește semnul lipsă pentru a rezolva ecuația (LogicLike)', isEngine: 'math_signs' },
     { id: 'rods', title: '🧱 Bastonul celor 10 Cuburi (Base-Ten)', desc: 'Unește 10 cuburi galbene pentru a forma o bară magnetică', isEngine: 'rods' },
     { id: 'stones', title: '🐸 Săritura pe Nuferi (1-5)', desc: 'Ghidează broscuța de la 1 la 5 sărind pe nuferi cu stropi de apă', isEngine: 'stepping_stones' },
     { id: 'scale', title: '⚖️ Cântarul Echilibrat (Balanța LogicLike)', desc: 'Echilibrează fructele și animăluțele pe cele două talere', isEngine: 'scale' },
@@ -200,6 +211,8 @@ const CURRICULUM_LIBRARY = {
     { id: 'mem3', title: 'Micul Explorator (2 perechi)', pairCount: 2, desc: 'Începe cu un nivel simplu și distractiv' },
   ],
   patterns: [
+    { id: 'odd_one_out', title: '🔍 Intrusul Logic (Odd-One-Out)', desc: 'Găsește elementul care nu se potrivește în grup', isEngine: 'odd_one_out' },
+    { id: 'shadow_match', title: '👥 Găsește Umbra (Siluete)', desc: 'Recunoaște silueta corectă a personajului', isEngine: 'shadow_match' },
     { id: 'oneline', title: '⚡ Puzzle Dintr-o Linie (Eulerian)', desc: 'Unește toate punctele fără să ridici degetul', isEngine: 'oneline' },
     { id: 'pat1', title: 'Model Alternant: A - B', pattern: ['🐶', '🐸', '🐶', '🐸'], target: '🐶', options: ['🐶', '🥕', '🐵'], desc: 'Ce animăluț urmează în șir?' },
     { id: 'pat2', title: 'Model Dublu: A - A - B', pattern: ['🥕', '🥕', '🐵', '🥕', '🥕'], target: '🐵', options: ['🐸', '🐵', '🐶'], desc: 'Descoperă regula morcovilor și maimuțicii' },
@@ -348,6 +361,18 @@ export default function App() {
     }
     if (type === 'find_number') {
       setAppMode('find_number');
+      return;
+    }
+    if (type === 'odd_one_out') {
+      setAppMode('odd_one_out');
+      return;
+    }
+    if (type === 'math_signs') {
+      setAppMode('math_signs');
+      return;
+    }
+    if (type === 'shadow_match') {
+      setAppMode('shadow_match');
       return;
     }
 
@@ -617,7 +642,7 @@ export default function App() {
       <StatusBar barStyle="dark-content" />
 
       {/* TOP BAR / BARA SUPERIOARĂ KHAN KIDS */}
-      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
+      {!['stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match', 'bath', 'dressup', 'quest', 'cutscene', 'rods', 'bubbles'].includes(appMode) && (
         <View style={styles.topBar}>
           <ScrollView
             horizontal={true}
@@ -799,6 +824,9 @@ export default function App() {
 
               <View style={styles.moduleGrid}>
               {[
+                { id: 'odd_one_out', title: 'Intrusul Logic', subtitle: 'Găsește Elementul Diferit (LogicLike)', badge: 'LOGICĂ DEDUCTIVĂ', color: '#E84393', mascot: IMAGES.peckMascot, accent: '#FDEBF3' },
+                { id: 'math_signs', title: 'Semnele Magice', subtitle: 'Operatori Lipsă + și - (LogicLike)', badge: 'ALGEBRĂ TIMPURIE', color: '#0984E3', mascot: IMAGES.kodiMascot, accent: '#EBF5FB' },
+                { id: 'shadow_match', title: 'Găsește Umbra', subtitle: 'Percepție Spațială & Siluete (LogicLike)', badge: 'DISCERNĂMÂNT VIZUAL', color: '#6C5CE7', mascot: IMAGES.sandyMascot, accent: '#F0EFFE' },
                 { id: 'count_select', title: 'Numără și Alege', subtitle: 'Mingiuțe Magice & Animăluțe (LogicLike)', badge: 'NUMĂRĂTOARE & FIZICĂ', color: '#00B4D8', mascot: IMAGES.kodiMascot, accent: '#E0F7FA' },
                 { id: 'find_number', title: 'Mâncăciosul de Numere', subtitle: 'Fructe Căzătoare & Cifre Țintă (LogicLike)', badge: 'RECUNOAȘTERE CIFRE', color: '#E67E22', mascot: IMAGES.olloMascot, accent: '#FEF9E7' },
                 { id: 'fishing', title: 'Pescuitul Sunetelor', subtitle: 'Undița Magnetică cu Peștișori (Khan Kids)', badge: 'PESCUIT & CITIRE', color: '#0984E3', mascot: IMAGES.peckMascot, accent: '#EBF5FB' },
@@ -822,7 +850,7 @@ export default function App() {
                   key={mod.id}
                   style={[styles.moduleCard, { borderBottomColor: mod.color }]}
                   onPress={() => {
-                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number'].includes(mod.id)) {
+                    if (['rods', 'bubbles', 'bath', 'cutscene', 'stepping_stones', 'oneline', 'fishing', 'scale', 'count_select', 'find_number', 'odd_one_out', 'math_signs', 'shadow_match'].includes(mod.id)) {
                       launchWorksheet(mod.id, {});
                     } else if (mod.id === 'math') {
                       launchWorksheet('math', CURRICULUM_LIBRARY.math.find(m => !m.isEngine) || {});
@@ -1412,6 +1440,42 @@ export default function App() {
       {/* 15. MODUL: MÂNCĂCIOSUL DE NUMERE (LOGICLIKE FIND THE NUMBER) */}
       {appMode === 'find_number' && (
         <FindTheNumberFallGame
+          audio={AUDIO}
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 16. MODUL: INTRUSUL LOGIC (LOGICLIKE ODD-ONE-OUT) */}
+      {appMode === 'odd_one_out' && (
+        <OddOneOutGame
+          audio={AUDIO}
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 17. MODUL: SEMNELE MAGICE (LOGICLIKE MATH SIGNS EQUATION) */}
+      {appMode === 'math_signs' && (
+        <MathSignsEquationGame
+          audio={AUDIO}
+          onBack={() => setAppMode('hub')}
+          onComplete={() => {
+            triggerStarBonus(5);
+            setShowGiftUnboxer(true);
+          }}
+        />
+      )}
+
+      {/* 18. MODUL: GĂSEȘTE UMBRA (LOGICLIKE SHADOW MATCH) */}
+      {appMode === 'shadow_match' && (
+        <ShadowMatchGame
           audio={AUDIO}
           onBack={() => setAppMode('hub')}
           onComplete={() => {

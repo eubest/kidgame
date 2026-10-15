@@ -18,3 +18,6 @@ export { PhonicsFishingGame } from './PhonicsFishingGame.js';
 export { LogicBalanceScaleGame } from './LogicBalanceScaleGame.js';
 export { CountAndSelectGame } from './CountAndSelectGame.js';
 export { FindTheNumberFallGame } from './FindTheNumberFallGame.js';
+export { OddOneOutGame } from './OddOneOutGame.js';
+export { MathSignsEquationGame } from './MathSignsEquationGame.js';
+export { ShadowMatchGame } from './ShadowMatchGame.js';

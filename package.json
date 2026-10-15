@@ -9,7 +9,6 @@
     "expo-av": "^16.0.8",
     "expo-speech": "~57.0.3",
     "expo-status-bar": "~57.0.1",
-    "expo-updates": "~57.0.26",
     "lucide-react-native": "^1.57.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -23,5 +22,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
-  "private": true
+  "private": true,
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "typescript": "^7.0.2"
+  }
 }

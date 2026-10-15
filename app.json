@@ -25,12 +25,6 @@
         "projectId": "0dd5d117-e9a6-48aa-89f3-1a7ef88e6f47"
       }
     },
-    "owner": "eubest",
-    "runtimeVersion": {
-      "policy": "sdkVersion"
-    },
-    "updates": {
-      "url": "https://u.expo.dev/0dd5d117-e9a6-48aa-89f3-1a7ef88e6f47"
-    }
+    "owner": "eubest"
   }
 }
