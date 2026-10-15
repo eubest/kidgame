@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "kidgame",
+    "slug": "kidgame",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0dd5d117-e9a6-48aa-89f3-1a7ef88e6f47"
+      }
+    },
+    "owner": "eubest",
+    "runtimeVersion": {
+      "policy": "sdkVersion"
+    }
+  }
+}
