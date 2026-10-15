@@ -8,10 +8,12 @@ import {
   Dimensions,
   Animated,
   ScrollView,
+  Platform,
 } from 'react-native';
 import { audioMixer } from '../audio';
 import confetti from '../utils/confetti';
 import { AndroidHaptics } from '../native/AndroidHaptics.js';
+import { NativeAudioBridge } from '../native/NativeAudioBridge.js';
 import { SunsetSkyGradient } from './GameGradients.js';
 
 const { width } = Dimensions.get('window');
@@ -160,12 +162,30 @@ export const InteractiveStorybookReader = ({ audio, onBack, onComplete }) => {
 
   const currentPage = STORY_PAGES[currentPageIndex];
 
+  // Word-by-word karaoke synchronization helper
+  const updateKaraokeWord = useCallback((ct) => {
+    const tmList = currentPage.tm;
+    let currentIdx = -1;
+    for (let i = 0; i < tmList.length; i++) {
+      const wordStart = tmList[i];
+      const nextWordStart = i + 1 < tmList.length ? tmList[i + 1] : wordStart + 0.8;
+      if (ct >= wordStart && ct < nextWordStart) {
+        currentIdx = i;
+        break;
+      }
+    }
+    if (currentIdx !== -1) {
+      setActiveWordIndex(currentIdx);
+    }
+  }, [currentPage]);
+
   // Stop playback when unmounting or switching pages
   const stopAudio = useCallback(() => {
     if (audioPlayerRef.current) {
       try {
-        audioPlayerRef.current.pause();
-        audioPlayerRef.current.currentTime = 0;
+        if (audioPlayerRef.current.pause) audioPlayerRef.current.pause();
+        if (audioPlayerRef.current.stop) audioPlayerRef.current.stop();
+        if (audioPlayerRef.current.unload) audioPlayerRef.current.unload();
       } catch (e) {}
       audioPlayerRef.current = null;
     }
@@ -177,60 +197,62 @@ export const InteractiveStorybookReader = ({ audio, onBack, onComplete }) => {
     setActiveWordIndex(-1);
   }, []);
 
-  const playCurrentPageAudio = useCallback(() => {
+  const playCurrentPageAudio = useCallback(async () => {
     stopAudio();
 
     const src = currentPage.audio?.default || currentPage.audio;
     if (!src) return;
 
+    const onAudioEnd = () => {
+      setIsPlaying(false);
+      setActiveWordIndex(-1);
+
+      // If on the last page, celebrate completion!
+      if (currentPageIndex === STORY_PAGES.length - 1) {
+        audioMixer.playSFX(audio?.sfxRoyal || audio?.sfxBingo || null);
+        audioMixer.playVoice(audio?.kodiAwesome || null, { duck: true });
+        confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
+        if (onComplete) onComplete();
+      }
+    };
+
     try {
-      const sound = new Audio(src);
-      audioPlayerRef.current = sound;
+      if (Platform.OS === 'web' && typeof Audio !== 'undefined') {
+        const sound = new Audio(src);
+        audioPlayerRef.current = sound;
+        sound.onended = onAudioEnd;
 
-      sound.onended = () => {
-        setIsPlaying(false);
-        setActiveWordIndex(-1);
-
-        // If on the last page, celebrate completion!
-        if (currentPageIndex === STORY_PAGES.length - 1) {
-          audioMixer.playSFX(audio?.sfxRoyal || audio?.sfxBingo || null);
-          audioMixer.playVoice(audio?.kodiAwesome || null, { duck: true });
-          confetti({ particleCount: 140, spread: 90, origin: { y: 0.6 } });
-          if (onComplete) onComplete();
-        }
-      };
-
-      sound.play().then(() => {
+        await sound.play();
         setIsPlaying(true);
 
-        // Poll audio currentTime at 30ms resolution for ultra-tight sync
         timeUpdateIntervalRef.current = setInterval(() => {
           if (!sound || sound.paused) return;
-          const ct = sound.currentTime;
-          const tmList = currentPage.tm;
-
-          // Find current active word index based on .tm time markers
-          let currentIdx = -1;
-          for (let i = 0; i < tmList.length; i++) {
-            const wordStart = tmList[i];
-            const nextWordStart = i + 1 < tmList.length ? tmList[i + 1] : wordStart + 0.8;
-            if (ct >= wordStart && ct < nextWordStart) {
-              currentIdx = i;
-              break;
-            }
-          }
-
-          if (currentIdx !== -1) {
-            setActiveWordIndex(currentIdx);
-          }
+          updateKaraokeWord(sound.currentTime);
         }, 30);
-      }).catch(() => {
-        setIsPlaying(false);
-      });
+      } else {
+        // Native Android / iOS via NativeAudioBridge
+        const instance = await NativeAudioBridge.createAudioInstance(src, {
+          shouldPlay: true,
+          volume: 1.0,
+        });
+        if (!instance) return;
+        audioPlayerRef.current = instance;
+        setIsPlaying(true);
+
+        instance.setOnPlaybackStatusUpdate((status) => {
+          if (!status) return;
+          if (status.didJustFinish) {
+            onAudioEnd();
+          } else if (status.isPlaying) {
+            const ct = (status.positionMillis || 0) / 1000.0;
+            updateKaraokeWord(ct);
+          }
+        });
+      }
     } catch (e) {
       setIsPlaying(false);
     }
-  }, [currentPage, currentPageIndex, stopAudio, audio, onComplete]);
+  }, [currentPage, currentPageIndex, stopAudio, audio, onComplete, updateKaraokeWord]);
 
   // Autoplay page audio when changing pages
   useEffect(() => {
@@ -443,7 +465,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#F0F8FF',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 12,
+    paddingTop: Platform.OS === 'android' ? 44 : 12,
+    paddingBottom: 12,
     paddingHorizontal: 16,
   },
   header: {
